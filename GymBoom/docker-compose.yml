@@ -1,0 +1,15 @@
+services:
+  gymboom_postgres:
+    image: postgres:16-alpine
+    container_name: gymboom_db
+    environment:
+      POSTGRES_USER: gymboom_user
+      POSTGRES_PASSWORD: GymBoomSecretPass123!
+      POSTGRES_DB: GymBoomDb
+    ports:
+      - "15432:5432"
+    volumes:
+      - gymboom_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  gymboom_postgres_data:
