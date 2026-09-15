@@ -3,6 +3,7 @@ using System;
 using GymBoom.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GymBoom.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260915222353_SeedSporMalzemeleri")]
+    partial class SeedSporMalzemeleri
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,52 +111,6 @@ namespace GymBoom.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("GymPlans");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Kısa dönemli antrenman ve salonu denemek isteyenler için ideal başlangıç paketi.",
-                            DurationInMonths = 1,
-                            Features = "Sınırsız Fitness Alanı Kullanımı, Soyunma Odası & Duş, Ücretsiz Dolap",
-                            IsActive = true,
-                            Price = 4000.00m,
-                            Title = "1 Aylık Standart Üyelik"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Düzenli spora başlamak ve gözle görülür sonuçlar almak isteyenler için.",
-                            DurationInMonths = 3,
-                            Features = "Fitness & Kardiyo Alanı, 1 Seans Ücretsiz Ölçüm & Program, Sauna Erişimi",
-                            IsActive = true,
-                            Price = 11000.00m,
-                            Title = "3 Aylık Gelişim Paketi"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Yüksek motivasyon ve avantajlı fiyat sunan orta-uzun dönem üyelik paketi.",
-                            DurationInMonths = 6,
-                            Features = "Tüm Fitness Alanları, Aylık Düzenli Vücut Analizi, Sauna & Buhar Odası, Grup Dersleri İndirimi",
-                            IsActive = true,
-                            Price = 19000.00m,
-                            Title = "6 Aylık Pro Paket"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "En ekonomik aylık maliyet, tam kapsamlı erişim ve dondurma hakkı sunan premium paket.",
-                            DurationInMonths = 12,
-                            Features = "VIP Alan Erişimi, Sınırsız Sauna & Buhar Odası, 30 Gün Üyelik Dondurma Hakkı, 2 Seans Birebir PT Desteği",
-                            IsActive = true,
-                            Price = 36000.00m,
-                            Title = "12 Aylık VIP Yıllık Üyelik"
-                        });
                 });
 
             modelBuilder.Entity("GymBoom.Models.Order", b =>
@@ -358,42 +315,6 @@ namespace GymBoom.Migrations
                             Name = "Paslanmaz Çelik Shaker (750 ml)",
                             Price = 320.00m,
                             Stock = 60
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CategoryId = 2,
-                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "%78 protein oranı, BCAA destekli, kolay çözünen izole & konsantre whey formülü.",
-                            ImageUrl = "/images/products/whey-protein.jpg",
-                            IsActive = true,
-                            Name = "Whey Protein Tozu (Çikolata - 2000 g)",
-                            Price = 1850.00m,
-                            Stock = 35
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CategoryId = 2,
-                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "%100 saf mikronize kreatin monohidrat. Kas gücü, hacim ve patlayıcı kuvvet artışı sağlar.",
-                            ImageUrl = "/images/products/creatine.jpg",
-                            IsActive = true,
-                            Name = "Mikronize Kreatin Monohidrat (300 g)",
-                            Price = 620.00m,
-                            Stock = 40
-                        },
-                        new
-                        {
-                            Id = 10,
-                            CategoryId = 2,
-                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Antrenman esnasında ve sonrasında kas yıkımını önlemeye ve toparlanmaya yardımcı esansiyel amino asitler.",
-                            ImageUrl = "/images/products/bcaa.jpg",
-                            IsActive = true,
-                            Name = "BCAA 4:1:1 Toz Form (Yeşil Elma - 500 g)",
-                            Price = 740.00m,
-                            Stock = 28
                         });
                 });
 

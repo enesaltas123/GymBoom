@@ -1,8 +1,235 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model GymBoom.Models.HomeIndexViewModel
+@{
+    ViewData["Title"] = "Ana Sayfa - Gücünü Zirveye Taşı";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- 1. HERO ALANI -->
+<div class="p-5 mb-5 rounded-4 text-white shadow-lg position-relative overflow-hidden border border-secondary border-opacity-25" 
+     style="background: linear-gradient(135deg, rgba(13, 17, 23, 0.95) 0%, rgba(22, 27, 34, 0.85) 100%), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat; min-height: 500px; display: flex; align-items: center;">
+    <div class="container py-2">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="badge bg-danger px-3 py-2 text-uppercase mb-3 fw-bold tracking-wide shadow-sm">
+                    GYMBOOM CLUB & STORE
+                </span>
+                <h1 class="display-3 fw-bold text-uppercase tracking-tight text-white">
+                    BAHANELERİ BIRAK, <br/><span class="text-danger">GÜCÜNÜ İNŞA ET</span>
+                </h1>
+                <p class="fs-5 text-secondary mt-3 pe-lg-5">
+                    Son teknoloji antrenman ekipmanları, ferah çalışma alanları, profesyonel üyelik avantajları ve orijinal sporcu besinleri tek adreste.
+                </p>
+                <div class="d-flex gap-3 mt-4 flex-wrap">
+                    <a href="#tanitim" class="btn btn-danger btn-lg px-4 py-3 fw-bold rounded-3 shadow">
+                        Neler Sunuyoruz?
+                    </a>
+                    <a href="#one-cikanlar" class="btn btn-outline-light btn-lg px-4 py-3 fw-bold rounded-3">
+                        Öne Çıkan Fırsatlar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. İSTATİSTİK SAYAÇLARI -->
+<div class="container mb-5">
+    <div class="row g-3 text-center">
+        <div class="col-6 col-md-3">
+            <div class="card gym-card py-4 rounded-4">
+                <h2 class="fw-bold text-danger mb-0">1500+</h2>
+                <small class="text-secondary text-uppercase fw-semibold">Aktif Üye</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card gym-card py-4 rounded-4">
+                <h2 class="fw-bold text-light mb-0">120+</h2>
+                <small class="text-secondary text-uppercase fw-semibold">Ekipman & İstasyon</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card gym-card py-4 rounded-4">
+                <h2 class="fw-bold text-danger mb-0">%100</h2>
+                <small class="text-secondary text-uppercase fw-semibold">Orijinal Gıda</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card gym-card py-4 rounded-4">
+                <h2 class="fw-bold text-light mb-0">7/24</h2>
+                <small class="text-secondary text-uppercase fw-semibold">Uzman Desteği</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. HİZMETLERİMİZ (SPLIT CARD TANITIMI) -->
+<div id="tanitim" class="container py-4 mb-5">
+    <div class="text-center mb-5">
+        <h6 class="text-danger fw-bold text-uppercase">Hizmet Alanlarımız</h6>
+        <h2 class="display-6 fw-bold text-white">İki Ayrı Güç, Tek Çatı Altında</h2>
+        <p class="text-secondary">Hem salonumuzda sınırlarını aş, hem de gelişmini en kaliteli sporcu ürünleriyle destekle.</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Kart 1: Spor Salonu -->
+        <div class="col-md-6">
+            <div class="card border-0 rounded-4 h-100 overflow-hidden text-white shadow" 
+                 style="background: linear-gradient(rgba(13,17,23,0.75), rgba(13,17,23,0.9)), url('https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800&auto=format&fit=crop') center/cover no-repeat; min-height: 340px;">
+                <div class="card-body p-5 d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge bg-danger mb-2">CLUB FITNESS</span>
+                        <h3 class="fw-bold display-6 text-white">Salon Üyelikleri</h3>
+                        <p class="text-light opacity-75 mt-2">
+                            Geniş serbest ağırlık alanları, fonksiyonel kardiyo parkurları, sauna ve profesyonel eğitmenler eşliğinde forma gir.
+                        </p>
+                    </div>
+                    <div>
+                        <a asp-controller="GymPlan" asp-action="Index" class="btn btn-light fw-bold px-4 py-2 rounded-3">
+                            Paketleri İncele &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kart 2: Store / Mağaza -->
+        <div class="col-md-6">
+            <div class="card border-0 rounded-4 h-100 overflow-hidden text-white shadow" 
+                 style="background: linear-gradient(rgba(13,17,23,0.75), rgba(13,17,23,0.9)), url('https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=800&auto=format&fit=crop') center/cover no-repeat; min-height: 340px;">
+                <div class="card-body p-5 d-flex flex-column justify-content-between">
+                    <div>
+                        <span class="badge bg-warning text-dark mb-2">GYMBOOM STORE</span>
+                        <h3 class="fw-bold display-6 text-white">Sporcu Gıdaları & Ekipman</h3>
+                        <p class="text-light opacity-75 mt-2">
+                            Whey proteinler, kreatinler, döküm dambıllar ve antrenman aksesuarları hızlı kargo avantajıyla kapında.
+                        </p>
+                    </div>
+                    <div>
+                        <a asp-controller="Store" asp-action="Index" class="btn btn-light fw-bold px-4 py-2 rounded-3">
+                            Mağazaya Git &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. ÖNE ÇIKANLAR (TEASER VİTRİN) -->
+<div id="one-cikanlar" class="py-5 px-4 mb-5 rounded-4" style="background-color: #161b22; border: 1px solid #30363d;">
+    <div class="container">
+        <!-- Üyelik Önizleme -->
+        <div id="plans-preview" class="mb-5">
+            <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+                <div>
+                    <span class="badge bg-danger-subtle text-danger fw-bold border border-danger-subtle">ÖNERİLENLER</span>
+                    <h3 class="fw-bold text-white mb-0 mt-1">Popüler Üyelik Paketleri</h3>
+                </div>
+                <a asp-controller="GymPlan" asp-action="Index" class="text-danger fw-semibold text-decoration-none">Tüm Paketleri Gör &rarr;</a>
+            </div>
+
+            <div class="row g-4">
+                @foreach (var plan in Model.Plans)
+                {
+                    <div class="col-md-6">
+                        <div class="card gym-card-inner rounded-4 p-4 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h4 class="fw-bold text-white mb-0">@plan.Title</h4>
+                                    <span class="badge bg-danger">@plan.DurationInMonths Ay</span>
+                                </div>
+                                <p class="text-secondary small mt-2">@plan.Description</p>
+                                <div class="my-3">
+                                    <span class="fs-2 fw-bold text-white">@plan.Price.ToString("N0")</span>
+                                    <span class="text-secondary">₺</span>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a asp-controller="GymPlan" asp-action="Index" class="btn btn-outline-light flex-grow-1 fw-semibold rounded-3 text-center text-decoration-none">Detaylar</a>
+                                <a asp-controller="GymPlan" asp-action="Index" class="btn btn-danger flex-grow-1 fw-semibold rounded-3 text-center text-decoration-none">Kayıt Ol</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Ürünler Önizleme -->
+        <div id="products-preview">
+            <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+                <div>
+                    <span class="badge bg-danger-subtle text-danger fw-bold border border-danger-subtle">ÇOK SATANLAR</span>
+                    <h3 class="fw-bold text-white mb-0 mt-1">Öne Çıkan Mağaza Ürünleri</h3>
+                </div>
+                <a asp-controller="Store" asp-action="Index" class="text-danger fw-semibold text-decoration-none">Tüm Mağazayı Gör &rarr;</a>
+            </div>
+
+            <div class="row g-4">
+                @foreach (var product in Model.Products)
+                {
+                    <div class="col-md-4">
+                        <div class="card gym-card-inner rounded-4 h-100 p-3 d-flex flex-column justify-content-between">
+                            <div class="rounded-3 text-center py-4 mb-3" style="background-color: #161b22; border: 1px solid #30363d;">
+                                <span class="fs-1">⚡</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-dark text-secondary small mb-2 border border-secondary border-opacity-25">
+                                    @(product.Category?.Name ?? "Ekipman")
+                                </span>
+                                <h5 class="fw-bold text-white">@product.Name</h5>
+                                <p class="text-secondary small text-truncate">@product.Description</p>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-3 mt-2" style="border-top: 1px solid #30363d;">
+                                <span class="fs-5 fw-bold text-white">@product.Price.ToString("N2") ₺</span>
+                                <a asp-controller="Store" asp-action="Index" class="btn btn-outline-danger btn-sm px-3 fw-semibold rounded-3 text-decoration-none">İncele</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. NEDEN BİZ? AYRICALIKLAR -->
+<div class="container py-4 mb-5 text-center">
+    <h6 class="text-danger fw-bold text-uppercase">Farkımız</h6>
+    <h2 class="display-6 fw-bold text-white mb-5">GymBoom Avantajları</h2>
+    <div class="row g-4 text-start">
+        <div class="col-md-4">
+            <div class="card gym-card p-4 rounded-4 h-100">
+                <div class="fs-2 text-danger mb-2">🏋️‍♂️</div>
+                <h5 class="fw-bold text-white">Geniş Çalışma Alanı</h5>
+                <p class="text-secondary small mb-0">Serbest ağırlık ve esneme bölgelerinde sıra beklemeden antrenmanını tamamla.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card gym-card p-4 rounded-4 h-100">
+                <div class="fs-2 text-danger mb-2">🔥</div>
+                <h5 class="fw-bold text-white">Sauna & Buhar Odası</h5>
+                <p class="text-secondary small mb-0">Ağır antrenmanların ardından kaslarını rahatlat ve hızlıca toparlan.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card gym-card p-4 rounded-4 h-100">
+                <div class="fs-2 text-danger mb-2">📦</div>
+                <h5 class="fw-bold text-white">Hızlı Teslimat</h5>
+                <p class="text-secondary small mb-0">Verdiğin supplement ve ekipman siparişleri aynı gün güvenle kargoda.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 6. ALT MOTİVASYON / CTA -->
+<div class="container mb-5">
+    <div class="p-5 rounded-4 text-center text-white shadow" style="background-color: #161b22; border: 1px solid #30363d;">
+        <h2 class="fw-bold display-6 text-white">Değişimi Erteleme</h2>
+        <p class="text-secondary col-md-8 mx-auto mt-3">
+            Salon üyeliğini hemen başlat veya hedefine uygun takviye gıdalarla antrenmanını güçlendir.
+        </p>
+        <div class="mt-4">
+            <a asp-controller="GymPlan" asp-action="Index" class="btn btn-danger btn-lg px-5 fw-bold rounded-3 shadow text-decoration-none">
+                Aramıza Katıl
+            </a>
+        </div>
+    </div>
 </div>

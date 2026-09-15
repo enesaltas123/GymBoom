@@ -1,0 +1,89 @@
+@model IEnumerable<GymBoom.Models.Product>
+@{
+    ViewData["Title"] = "GymBoom Store - Mağaza";
+    var categories = ViewBag.Categories as List<GymBoom.Models.Category> ?? new();
+}
+
+<!-- MAĞAZA BAŞLIK ALANI -->
+<div class="text-center py-4 mb-4">
+    <span class="badge bg-danger px-3 py-2 text-uppercase fw-bold mb-2 shadow-sm">
+        GYMBOOM OFFICIAL STORE
+    </span>
+    <h1 class="display-5 fw-bold text-white">Sporcu Besinleri & Antrenman Ekipmanları</h1>
+    <p class="text-secondary col-md-7 mx-auto mt-2 fs-5">
+        %100 orijinal takviyeler, olimpik barlar, dambıllar ve antrenman performansını zirveye taşıyacak ekipmanlar.
+    </p>
+</div>
+
+<div class="container mb-5">
+    <!-- GÖRSEL KATEGORİ BUTONLARI -->
+    <div class="d-flex justify-content-center flex-wrap gap-2 mb-5">
+        <button type="button" class="btn btn-danger px-4 py-2 rounded-pill fw-semibold shadow-sm">
+            Tümü
+        </button>
+        @foreach (var cat in categories)
+        {
+            <button type="button" class="btn btn-outline-secondary text-light px-4 py-2 rounded-pill fw-semibold border-opacity-50">
+                @cat.Name
+            </button>
+        }
+    </div>
+
+    <!-- ÜRÜNLER GRID ALANI -->
+    <div class="row g-4">
+        @foreach (var product in Model)
+        {
+            <div class="col-lg-4 col-md-6">
+                <div class="card gym-card rounded-4 h-100 p-3 d-flex flex-column justify-content-between shadow-sm">
+                    
+                    <!-- Görsel & Kategori Rozeti -->
+                    <div class="rounded-3 text-center py-4 mb-3 position-relative" style="background-color: #21262d; border: 1px solid #30363d; height: 180px; display: flex; align-items: center; justify-content: center;">
+                        @if (product.CategoryId == 1)
+                        {
+                            <span class="fs-1">🏋️‍♂️</span>
+                        }
+                        else if (product.CategoryId == 2)
+                        {
+                            <span class="fs-1">🥤</span>
+                        }
+                        else
+                        {
+                            <span class="fs-1">🥊</span>
+                        }
+
+                        <span class="position-absolute top-0 start-0 badge bg-dark text-secondary m-2 border border-secondary border-opacity-25">
+                            @(product.Category?.Name ?? "Ekipman")
+                        </span>
+
+                        @if (product.Stock <= 15)
+                        {
+                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2 fw-bold">
+                                Son @product.Stock Adet
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Ürün Başlık & Açıklama -->
+                    <div class="mb-3">
+                        <h5 class="fw-bold text-white mb-2">@product.Name</h5>
+                        <p class="text-secondary small mb-0" style="min-height: 40px;">
+                            @product.Description
+                        </p>
+                    </div>
+
+                    <!-- Fiyat, Stok ve Sepet Butonu -->
+                    <div class="pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center mt-auto">
+                        <div>
+                            <div class="fs-4 fw-bold text-white">@product.Price.ToString("N2") ₺</div>
+                            <small class="text-success fw-semibold">✓ Stokta Mevcut</small>
+                        </div>
+                        <button type="button" class="btn btn-danger px-3 py-2 fw-semibold rounded-3 shadow-sm">
+                            Sepete Ekle
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        }
+    </div>
+</div>

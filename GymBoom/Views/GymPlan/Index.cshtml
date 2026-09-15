@@ -1,0 +1,111 @@
+@model IEnumerable<GymBoom.Models.GymPlan>
+@{
+    ViewData["Title"] = "Üyelik Paketleri - GymBoom";
+}
+
+<div class="text-center py-4 mb-4">
+    <span class="badge bg-danger px-3 py-2 text-uppercase fw-bold mb-2 shadow-sm">
+        GYMBOOM MEMBERSHIP
+    </span>
+    <h1 class="display-5 fw-bold text-white">Spor Salonu Üyelik Paketleri</h1>
+    <p class="text-secondary col-md-7 mx-auto mt-2 fs-5">
+        Hedefine ve bütçene en uygun planı seç. 1 aydan 12 aya kadar esnek süreler, dondurma avantajı ve sınırsız salon kullanımı seni bekliyor.
+    </p>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4 justify-content-center align-items-stretch">
+        @foreach (var plan in Model)
+        {
+            var isVip = plan.DurationInMonths == 12;
+            var isPro = plan.DurationInMonths == 6;
+
+            <div class="col-lg-3 col-md-6">
+                <div class="card gym-card rounded-4 p-4 h-100 d-flex flex-column justify-content-between position-relative @(isVip ? "border-danger border-2 shadow-lg" : "")">
+                    
+                    @if (isVip)
+                    {
+                        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger px-3 py-2 fw-bold">
+                            EN POPÜLER VIP
+                        </span>
+                    }
+                    else if (isPro)
+                    {
+                        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-warning text-dark px-3 py-2 fw-bold">
+                            AVANTAJLI
+                        </span>
+                    }
+
+                    <div>
+                        <!-- Başlık ve Süre -->
+                        <div class="text-center pb-3 border-bottom border-secondary border-opacity-25 mt-2">
+                            <h4 class="fw-bold text-white mb-1">@plan.Title</h4>
+                            <span class="badge bg-dark text-secondary border border-secondary border-opacity-25 px-2 py-1">
+                                @plan.DurationInMonths Aylık Abonelik
+                            </span>
+                        </div>
+
+                        <!-- Fiyat Alanı -->
+                        <div class="text-center my-4">
+                            <span class="display-5 fw-bold text-white">@plan.Price.ToString("N0")</span>
+                            <span class="text-danger fs-4 fw-bold">₺</span>
+                            <div class="text-secondary small mt-1">
+                                @((plan.Price / plan.DurationInMonths).ToString("N0")) ₺ / Ay'a denk gelir
+                            </div>
+                        </div>
+
+                        <p class="text-secondary small text-center mb-4">
+                            @plan.Description
+                        </p>
+
+                        <!-- Özellik Maddeleri -->
+                        <ul class="list-unstyled text-start small mb-4">
+                            @if (!string.IsNullOrEmpty(plan.Features))
+                            {
+                                @foreach (var feat in plan.Features.Split(','))
+                                {
+                                    <li class="py-2 text-light border-bottom border-secondary border-opacity-10 d-flex align-items-start">
+                                        <span class="text-danger fw-bold me-2">✓</span>
+                                        <span>@feat.Trim()</span>
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </div>
+
+                    <div class="mt-auto pt-3">
+                        <button class="btn @(isVip ? "btn-danger" : "btn-outline-light") w-100 py-3 fw-bold rounded-3 shadow-sm">
+                            Paketi Satın Al
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="container py-4 mb-5">
+    <div class="card gym-card rounded-4 p-4 p-md-5">
+        <h3 class="fw-bold text-white text-center mb-4">Üyelik Hakkında Bilmeniz Gerekenler</h3>
+        <div class="row g-4 text-start">
+            <div class="col-md-4">
+                <h5 class="fw-bold text-danger">Dondurma Hakkı Var mı?</h5>
+                <p class="text-secondary small mb-0">
+                    6 ve 12 aylık üyeliklerde mazeret bildirmeksizin sırasıyla 15 ve 30 gün dondurma hakkınız bulunur.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h5 class="fw-bold text-danger">Çalışma Saatleri Nedir?</h5>
+                <p class="text-secondary small mb-0">
+                    Hafta içi 06:30 - 23:00, hafta sonu ise 08:00 - 21:00 saatleri arasında tüm alanlarımızı sınırsız kullanabilirsiniz.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h5 class="fw-bold text-danger">Giriş Nasıl Yapılır?</h5>
+                <p class="text-secondary small mb-0">
+                    Satın alma işleminizin ardından hesabınıza tanımlanan QR kod veya kartınız ile turnikelerden anında geçiş yapabilirsiniz.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
