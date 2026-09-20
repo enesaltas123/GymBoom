@@ -13,13 +13,12 @@ public class GymPlanController : Controller
         _context = context;
     }
 
-    // GET: /GymPlan
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
-        // Aktif tüm üyelik paketlerini ay süresine göre sıralı hale getiriyorum
+        // Veritabanındaki aktif üyelik paketlerini fiyata göre artan şekilde sırala
         var plans = await _context.GymPlans
-            .Where(p => p.IsActive)
-            .OrderBy(p => p.DurationInMonths)
+            .OrderBy(p => p.Price)
             .ToListAsync();
 
         return View(plans);

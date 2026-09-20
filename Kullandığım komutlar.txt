@@ -3,3 +3,4 @@ dotnet add package Microsoft.EntityFrameworkCore.Design
 dotnet ef migrations add SeedSporMalzemeleri
 dotnet ef database update
 dotnet ef migrations add SeedSupplementsAndGymPlans
+dotnet add package BCrypt.Net-Next

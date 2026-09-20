@@ -13,18 +13,16 @@ public class StoreController : Controller
         _context = context;
     }
 
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
-        // Kategorileri ViewBag ile sayfadaki görsel filtre butonları için taşıyoruz
-        ViewBag.Categories = await _context.Categories
-            .Where(c => c.IsActive)
-            .ToListAsync();
+        // Kategorileri ViewBag ile sayfaya yolla
+        ViewBag.Categories = await _context.Categories.Where(c => c.IsActive).ToListAsync();
 
-        // Tüm aktif ürünleri kategorisiyle birlikte çekiyoruz
+        // Ürünleri yolla
         var products = await _context.Products
             .Include(p => p.Category)
             .Where(p => p.IsActive)
-            .OrderByDescending(p => p.Id)
             .ToListAsync();
 
         return View(products);

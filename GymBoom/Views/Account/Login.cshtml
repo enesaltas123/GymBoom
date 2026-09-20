@@ -1,0 +1,48 @@
+@model GymBoom.Models.ViewModels.Account.LoginViewModel
+@{
+    ViewData["Title"] = "Giriş Yap - GymBoom";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card gym-card p-4 p-md-5 rounded-4 shadow-lg">
+                <div class="text-center mb-4">
+                    <span class="badge bg-danger px-3 py-2 text-uppercase fw-bold mb-2">Hoş Geldin</span>
+                    <h2 class="fw-bold text-white">Giriş Yap</h2>
+                    <p class="text-secondary small">Antrenmanlarına ve siparişlerine kaldığın yerden devam et.</p>
+                </div>
+
+                <form asp-action="Login" method="post">
+                    <input type="hidden" asp-for="ReturnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label text-light small fw-semibold"></label>
+                        <input asp-for="Email" class="form-control bg-dark text-white border-secondary border-opacity-50 py-2 rounded-3" placeholder="ornek@email.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Password" class="form-label text-light small fw-semibold"></label>
+                        <input asp-for="Password" class="form-control bg-dark text-white border-secondary border-opacity-50 py-2 rounded-3" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-2 fw-bold rounded-3 shadow">
+                        Giriş Yap
+                    </button>
+                </form>
+
+                <div class="text-center mt-4 pt-3 border-top border-secondary border-opacity-25">
+                    <span class="text-secondary small">Henüz üye değil misin?</span>
+                    <a asp-action="Register" class="text-danger fw-semibold small text-decoration-none ms-1">Hemen Kayıt Ol</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

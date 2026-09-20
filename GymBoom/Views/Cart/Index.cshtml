@@ -1,0 +1,108 @@
+@model GymBoom.Models.ViewModels.Cart.CartViewModel
+@{
+    ViewData["Title"] = "Sepetim - GymBoom";
+}
+
+<div class="container py-5">
+    <div class="mb-4">
+        <h2 class="text-white fw-bold">Alışveriş Sepeti</h2>
+        <p class="text-secondary small">Seçtiğin ürünleri kontrol edip siparişini tamamlayabilirsin.</p>
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="card gym-card p-5 text-center rounded-4 shadow">
+            <div class="fs-1 mb-3">🛒</div>
+            <h4 class="text-white fw-bold">Sepetin şu an boş!</h4>
+            <p class="text-secondary">Antrenman hedeflerine ulaşmak için hemen mağazayı keşfet.</p>
+            <div class="mt-3">
+                <a href="/Store" class="btn btn-danger px-4 py-2 fw-semibold rounded-3">Mağazaya Git</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card gym-card p-4 rounded-4 shadow">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-borderless align-middle mb-0">
+                            <thead class="border-bottom border-secondary border-opacity-25 text-secondary small">
+                                <tr>
+                                    <th>ÜRÜN</th>
+                                    <th class="text-center">FİYAT</th>
+                                    <th class="text-center">ADET</th>
+                                    <th class="text-center">TOPLAM</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr class="border-bottom border-secondary border-opacity-10">
+                                        <td class="py-3">
+                                            <span class="fw-bold text-white d-block">@item.ProductName</span>
+                                            <span class="text-secondary small">Ürün Kodu: #@item.ProductId</span>
+                                        </td>
+                                        <td class="text-center py-3 text-light">
+                                            @item.Price.ToString("N2") ₺
+                                        </td>
+                                        <td class="text-center py-3">
+                                            <span class="badge bg-dark border border-secondary px-3 py-2 text-white">
+                                                @item.Quantity
+                                            </span>
+                                        </td>
+                                        <td class="text-center py-3 fw-bold text-danger">
+                                            @item.TotalPrice.ToString("N2") ₺
+                                        </td>
+                                        <td class="text-end py-3">
+                                            <form action="/Cart/RemoveItem" method="post" class="d-inline m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary text-danger border-0">
+                                                    ✕
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary border-opacity-25">
+                        <a href="/Store" class="btn btn-outline-light btn-sm px-3 fw-semibold">← Alışverişe Devam Et</a>
+                        <form action="/Cart/Clear" method="post" class="m-0">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger btn-sm px-3 fw-semibold">Sepeti Temizle</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card gym-card p-4 rounded-4 shadow">
+                    <h5 class="text-white fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2">Sipariş Özeti</h5>
+
+                    <div class="d-flex justify-content-between text-secondary mb-2 small">
+                        <span>Toplam Ürün Adedi:</span>
+                        <span class="text-white fw-semibold">@Model.TotalQuantity adet</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-secondary mb-2 small">
+                        <span>Kargo Ücreti:</span>
+                        <span class="text-success fw-semibold">Ücretsiz</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center my-3 pt-3 border-top border-secondary border-opacity-25">
+                        <span class="fs-5 text-white fw-bold">Ödenecek Tutar:</span>
+                        <span class="fs-4 text-danger fw-bold">@Model.GrandTotal.ToString("N2") ₺</span>
+                    </div>
+
+                    <button class="btn btn-danger w-100 py-3 fw-bold rounded-3 shadow mt-2" onclick="alert('Siparişi Tamamla adımı (Checkout/Order) bir sonraki aşamada bağlanacaktır!')">
+                        Siparişi Onayla
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
