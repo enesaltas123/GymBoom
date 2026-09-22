@@ -164,25 +164,22 @@ namespace GymBoom.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CustomerEmail")
+                    b.Property<string>("OrderNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("CustomerFullName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("OrderStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ShippingAddress")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -190,15 +187,12 @@ namespace GymBoom.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("UserId1")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId1");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Orders");
                 });
@@ -210,12 +204,6 @@ namespace GymBoom.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");
@@ -410,6 +398,9 @@ namespace GymBoom.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("ActiveGymPlanId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -424,6 +415,9 @@ namespace GymBoom.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("MembershipEndDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
@@ -433,6 +427,8 @@ namespace GymBoom.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ActiveGymPlanId");
 
                     b.ToTable("Users");
                 });
@@ -481,9 +477,13 @@ namespace GymBoom.Migrations
 
             modelBuilder.Entity("GymBoom.Models.Order", b =>
                 {
-                    b.HasOne("GymBoom.Models.User", null)
+                    b.HasOne("GymBoom.Models.User", "User")
                         .WithMany("Orders")
-                        .HasForeignKey("UserId1");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GymBoom.Models.OrderItem", b =>
@@ -514,6 +514,15 @@ namespace GymBoom.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("GymBoom.Models.User", b =>
+                {
+                    b.HasOne("GymBoom.Models.GymPlan", "ActiveGymPlan")
+                        .WithMany()
+                        .HasForeignKey("ActiveGymPlanId");
+
+                    b.Navigation("ActiveGymPlan");
                 });
 
             modelBuilder.Entity("GymBoom.Models.UserSubscription", b =>

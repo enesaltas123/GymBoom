@@ -1,102 +1,174 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using GymBoom.Data;
-using GymBoom.Extensions;
+using GymBoom.Models;
 using GymBoom.Models.ViewModels.Cart;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace GymBoom.Controllers;
 
-[Authorize]
 public class CartController : Controller
 {
     private readonly AppDbContext _context;
-    private const string CartSessionKey = "GymBoomCart";
 
     public CartController(AppDbContext context)
     {
         _context = context;
     }
 
-    // GET: /Cart/Index
-    [HttpGet]
-    public IActionResult Index()
+    // --- YARDIMCI METOTLAR ---
+    private List<CartItem> GetCartItems()
     {
-        var cart = GetCart();
-        return View(cart);
+        var cartJson = HttpContext.Session.GetString("Cart");
+        if (string.IsNullOrEmpty(cartJson))
+        {
+            return new List<CartItem>();
+        }
+        return JsonSerializer.Deserialize<List<CartItem>>(cartJson) ?? new List<CartItem>();
     }
 
-    // POST: /Cart/AddToCart
+    private void SaveCartItems(List<CartItem> cart)
+    {
+        var cartJson = JsonSerializer.Serialize(cart);
+        HttpContext.Session.SetString("Cart", cartJson);
+    }
+
+    [HttpGet]
+    public IActionResult Index()
+{
+    var cart = GetCartItems();
+    
+    var model = new CartViewModel
+    {
+        Items = cart.Select(c => new CartItemViewModel 
+        {
+            ProductId = c.ProductId,
+            ProductName = c.ProductName,
+            Price = c.Price,
+            Quantity = c.Quantity
+        }).ToList()
+    };
+    
+    return View(model);
+}
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddToCart(int productId, int quantity = 1)
+    public async Task<IActionResult> AddToCart(int productId)
     {
         var product = await _context.Products.FindAsync(productId);
-        if (product == null || !product.IsActive)
+        if (product == null)
         {
             return NotFound();
         }
 
-        var cart = GetCart();
-        var existingItem = cart.Items.FirstOrDefault(x => x.ProductId == productId);
+        var cart = GetCartItems();
+        var existingItem = cart.FirstOrDefault(c => c.ProductId == productId);
 
         if (existingItem != null)
         {
-            existingItem.Quantity += quantity;
+            existingItem.Quantity++;
         }
         else
         {
-            cart.Items.Add(new CartItemViewModel
+            cart.Add(new CartItem
             {
                 ProductId = product.Id,
                 ProductName = product.Name,
                 Price = product.Price,
-                Quantity = quantity,
-                ImageUrl = product.ImageUrl
+                Quantity = 1
             });
         }
 
-        SaveCart(cart);
-
+        SaveCartItems(cart);
         TempData["SuccessMessage"] = $"{product.Name} sepete eklendi!";
         return RedirectToAction("Index", "Store");
     }
 
-    // POST: /Cart/RemoveItem
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult RemoveItem(int productId)
     {
-        var cart = GetCart();
-        var item = cart.Items.FirstOrDefault(x => x.ProductId == productId);
+        var cart = GetCartItems();
+        var itemToRemove = cart.FirstOrDefault(c => c.ProductId == productId);
 
-        if (item != null)
+        if (itemToRemove != null)
         {
-            cart.Items.Remove(item);
-            SaveCart(cart);
+            cart.Remove(itemToRemove);
+            SaveCartItems(cart);
         }
 
         return RedirectToAction("Index");
     }
 
-    // POST: /Cart/Clear
     [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Clear()
     {
-        HttpContext.Session.Remove(CartSessionKey);
+        HttpContext.Session.Remove("Cart");
         return RedirectToAction("Index");
     }
 
-    // Yardımcı Metotlar
-    private CartViewModel GetCart()
+    // --- YENİ SİPARİŞ VE ÖDEME İŞLEMLERİ ---
+    [HttpGet]
+    [Authorize]
+    public IActionResult Checkout()
     {
-        var cart = HttpContext.Session.GetObjectFromJson<CartViewModel>(CartSessionKey);
-        return cart ?? new CartViewModel();
+        var cart = GetCartItems();
+        
+        if (!cart.Any())
+        {
+            TempData["ErrorMessage"] = "Sepetiniz boş, ödeme yapamazsınız.";
+            return RedirectToAction("Index", "Store");
+        }
+
+        return View(cart);
     }
 
-    private void SaveCart(CartViewModel cart)
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PlaceOrder(string address, string city)
     {
-        HttpContext.Session.SetObjectAsJson(CartSessionKey, cart);
+        var cart = GetCartItems();
+        if (!cart.Any())
+        {
+            return RedirectToAction("Index", "Store");
+        }
+
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdString, out int userId)) return RedirectToAction("Login", "Account");
+
+        var order = new Order
+        {
+            UserId = userId,
+            OrderNumber = "ORD-" + DateTime.Now.ToString("yyyyMMddHHmmss"),
+            TotalAmount = cart.Sum(c => c.Price * c.Quantity),
+            Address = address,
+            City = city,
+            Status = "Onaylandı",
+            CreatedDate = DateTime.UtcNow,
+            OrderItems = new List<OrderItem>()
+        };
+
+        foreach (var item in cart)
+        {
+            order.OrderItems.Add(new OrderItem
+            {
+                ProductId = item.ProductId,
+                Quantity = item.Quantity,
+                UnitPrice = item.Price
+            });
+        }
+
+        _context.Orders.Add(order);
+        await _context.SaveChangesAsync();
+
+        HttpContext.Session.Remove("Cart");
+
+        TempData["SuccessMessage"] = $"Siparişiniz başarıyla alındı! Takip Numaranız: {order.OrderNumber}";
+        return RedirectToAction("Profile", "Account");
     }
 }

@@ -17,13 +17,11 @@
     <div class="row g-4 justify-content-center">
         @foreach (var plan in Model)
         {
-            // Popüler plan kontrolü
             bool isPopular = plan.Price > 500 && plan.Price < 3000;
             
             <div class="col-lg-4 col-md-6">
                 <div class="card gym-card h-100 rounded-4 overflow-hidden shadow-sm d-flex flex-column @(isPopular ? "border-danger border-2" : "border-secondary border-opacity-25")" style="background-color: #161b22;">
                     
-                    <!-- Popüler Şeridi -->
                     @if (isPopular)
                     {
                         <div class="bg-danger text-white text-center py-2 fw-bold text-uppercase small tracking-wide shadow-sm">
@@ -31,7 +29,6 @@
                         </div>
                     }
 
-                    <!-- Kart Üst Kısmı (Başlık ve Fiyat) -->
                     <div class="p-4 text-center border-bottom border-secondary border-opacity-25" style="background-color: #21262d;">
                         <h3 class="fw-bold text-white mb-2">@plan.Title</h3>
                         <p class="text-secondary small mb-3" style="min-height: 40px;">@plan.Description</p>
@@ -42,7 +39,6 @@
                         <div class="text-secondary small fw-semibold mt-1">/ @plan.DurationInMonths Ay</div>
                     </div>
 
-                    <!-- Kart Gövdesi (Özellikler) -->
                     <div class="card-body p-4 d-flex flex-column flex-grow-1">
                         <ul class="list-unstyled text-secondary mb-4 mx-auto w-100" style="max-width: 250px;">
                             <li class="mb-3 d-flex align-items-center gap-3">
@@ -58,7 +54,6 @@
                                 <span class="text-light">Duş ve Soyunma Odası</span>
                             </li>
                             
-                            <!-- Premium Özellikler Kontrolü -->
                             @if (plan.Price >= 1000)
                             {
                                 <li class="mb-3 d-flex align-items-center gap-3">
@@ -83,17 +78,16 @@
                             }
                         </ul>
 
-                        <!-- Buton Alanı -->
                         <div class="mt-auto pt-3 border-top border-secondary border-opacity-25">
                             @if (User.Identity != null && User.Identity.IsAuthenticated)
                             {
-                                <button type="button" class="btn btn-danger w-100 py-3 fw-bold rounded-3 shadow-sm text-uppercase">
+                                <a href="/GymPlan/Checkout?planId=@plan.Id" class="btn btn-danger w-100 py-3 fw-bold rounded-3 shadow-sm text-uppercase d-block text-center text-decoration-none">
                                     Planı Seç
-                                </button>
+                                </a>
                             }
                             else
                             {
-                                <a href="/Account/Login?returnUrl=/GymPlan" class="btn btn-outline-light w-100 py-3 fw-bold rounded-3 text-uppercase">
+                                <a href="/Account/Login?returnUrl=/GymPlan" class="btn btn-outline-light w-100 py-3 fw-bold rounded-3 text-uppercase d-block text-center text-decoration-none">
                                     Giriş Yap ve Seç
                                 </a>
                             }

@@ -1,0 +1,103 @@
+@model List<GymBoom.Models.CartItem>
+@{
+    ViewData["Title"] = "Mağaza Ödeme - GymBoom";
+    decimal totalAmount = Model.Sum(i => i.Price * i.Quantity);
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-white">Siparişi Tamamla</h1>
+        <p class="text-secondary mt-2 fs-5">Kargo ve ödeme bilgilerinizi girerek siparişinizi onaylayın.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- SOL TARAF: SEPET ÖZETİ -->
+        <div class="col-lg-4 order-lg-2">
+            <div class="card gym-card rounded-4 shadow-sm border-secondary border-opacity-25 p-4" style="background-color: #161b22;">
+                <h4 class="fw-bold text-white border-bottom border-secondary border-opacity-25 pb-3 mb-4">Sipariş Özeti</h4>
+                
+                <div class="d-flex flex-column gap-3 mb-4">
+                    @foreach (var item in Model)
+                    {
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-white mb-1">@item.ProductName</h6>
+                                <small class="text-secondary">@item.Quantity Adet x @item.Price.ToString("N0") ₺</small>
+                            </div>
+                            <span class="text-white fw-semibold">@((item.Price * item.Quantity).ToString("N0")) ₺</span>
+                        </div>
+                    }
+                </div>
+
+                <hr class="border-secondary opacity-25 my-4">
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-white fs-5 fw-semibold">Toplam Tutar:</span>
+                    <span class="fs-3 text-danger fw-black">@totalAmount.ToString("N0") ₺</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAĞ TARAF: ADRES VE ÖDEME FORMU -->
+        <div class="col-lg-8 order-lg-1">
+            <div class="card gym-card rounded-4 shadow-sm border-secondary border-opacity-25 p-4" style="background-color: #161b22;">
+                
+                <form action="/Cart/PlaceOrder" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- TESLİMAT BİLGİLERİ (Veritabanına Gidecek) -->
+                    <h4 class="fw-bold text-white mb-4">Teslimat Bilgileri</h4>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary fw-semibold">Şehir</label>
+                            <!-- name="city" özelliği sayesinde controller'a ulaşır -->
+                            <input type="text" name="city" class="form-control bg-dark border-secondary text-white py-2" placeholder="Örn: İstanbul" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary fw-semibold">Açık Adres</label>
+                            <!-- name="address" özelliği sayesinde controller'a ulaşır -->
+                            <textarea name="address" class="form-control bg-dark border-secondary text-white py-2" rows="3" placeholder="Mahalle, sokak, bina, kapı no..." required></textarea>
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary opacity-25 my-5">
+
+                    <!-- KART BİLGİLERİ (Hiçbir yere gitmeyecek, sahte) -->
+                    <h4 class="fw-bold text-white mb-4">Kart Bilgileri</h4>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-secondary fw-semibold">Kart Üzerindeki İsim</label>
+                        <input type="text" class="form-control bg-dark border-secondary text-white py-2" placeholder="Ad Soyad" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-secondary fw-semibold">Kart Numarası</label>
+                        <input type="text" class="form-control bg-dark border-secondary text-white py-2" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary fw-semibold">Son Kullanma Tarihi</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-white py-2" placeholder="AA / YY" maxlength="5" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary fw-semibold">CVV</label>
+                            <input type="password" class="form-control bg-dark border-secondary text-white py-2" placeholder="***" maxlength="3" required>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-5">
+                        <input class="form-check-input bg-dark border-secondary" type="checkbox" id="terms" required>
+                        <label class="form-check-label text-secondary small" for="terms">
+                            Mesafeli Satış Sözleşmesi'ni okudum ve onaylıyorum.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-3 fw-bold rounded-3 shadow-sm text-uppercase fs-5">
+                        Siparişi Onayla ve Öde
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

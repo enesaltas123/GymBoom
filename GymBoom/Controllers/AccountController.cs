@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization; 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GymBoom.Data;
@@ -148,12 +149,31 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
-        // Önce kimlik doğrulama oturumunu kapatıyoruz
         await HttpContext.SignOutAsync("Cookies");
-        
-        // Sepeti (Session'ı) tamamen temizliyoruz
         HttpContext.Session.Clear();
-        
         return RedirectToAction("Index", "Home");
+    }
+
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> Profile()
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdString, out int userId))
+        {
+            return RedirectToAction("Login");
+        }
+
+        // Kullanıcıyı bulurken "ActiveGymPlan" (Üyelik Paketi) verisini de beraberinde getiriyorum (Include)
+        var user = await _context.Users
+            .Include(u => u.ActiveGymPlan)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        return View(user);
     }
 }

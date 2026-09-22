@@ -3,4 +3,6 @@ dotnet add package Microsoft.EntityFrameworkCore.Design
 dotnet ef migrations add SeedSporMalzemeleri
 dotnet ef database update
 dotnet ef migrations add SeedSupplementsAndGymPlans
-dotnet add package BCrypt.Net-Next
+dotnet add package BCrypt.Net-Next  (şifreleri veritabanında gizlemek için bulduğum paket)
+dotnet ef migrations add AddGymPlanToUser
+dotnet ef migrations add AddStoreOrders

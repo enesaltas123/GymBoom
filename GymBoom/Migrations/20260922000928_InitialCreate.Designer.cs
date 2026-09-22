@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GymBoom.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260915222353_SeedSporMalzemeleri")]
-    partial class SeedSporMalzemeleri
+    [Migration("20260922000928_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,6 +111,52 @@ namespace GymBoom.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("GymPlans");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Kısa dönemli antrenman ve salonu denemek isteyenler için ideal başlangıç paketi.",
+                            DurationInMonths = 1,
+                            Features = "Sınırsız Fitness Alanı Kullanımı, Soyunma Odası & Duş, Ücretsiz Dolap",
+                            IsActive = true,
+                            Price = 4000.00m,
+                            Title = "1 Aylık Standart Üyelik"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Düzenli spora başlamak ve gözle görülür sonuçlar almak isteyenler için.",
+                            DurationInMonths = 3,
+                            Features = "Fitness & Kardiyo Alanı, 1 Seans Ücretsiz Ölçüm & Program, Sauna Erişimi",
+                            IsActive = true,
+                            Price = 11000.00m,
+                            Title = "3 Aylık Gelişim Paketi"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Yüksek motivasyon ve avantajlı fiyat sunan orta-uzun dönem üyelik paketi.",
+                            DurationInMonths = 6,
+                            Features = "Tüm Fitness Alanları, Aylık Düzenli Vücut Analizi, Sauna & Buhar Odası, Grup Dersleri İndirimi",
+                            IsActive = true,
+                            Price = 19000.00m,
+                            Title = "6 Aylık Pro Paket"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "En ekonomik aylık maliyet, tam kapsamlı erişim ve dondurma hakkı sunan premium paket.",
+                            DurationInMonths = 12,
+                            Features = "VIP Alan Erişimi, Sınırsız Sauna & Buhar Odası, 30 Gün Üyelik Dondurma Hakkı, 2 Seans Birebir PT Desteği",
+                            IsActive = true,
+                            Price = 36000.00m,
+                            Title = "12 Aylık VIP Yıllık Üyelik"
+                        });
                 });
 
             modelBuilder.Entity("GymBoom.Models.Order", b =>
@@ -121,25 +167,22 @@ namespace GymBoom.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CustomerEmail")
+                    b.Property<string>("OrderNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("CustomerFullName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("OrderStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ShippingAddress")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -147,10 +190,12 @@ namespace GymBoom.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Orders");
                 });
@@ -162,12 +207,6 @@ namespace GymBoom.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("integer");
@@ -315,7 +354,86 @@ namespace GymBoom.Migrations
                             Name = "Paslanmaz Çelik Shaker (750 ml)",
                             Price = 320.00m,
                             Stock = 60
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CategoryId = 2,
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "%78 protein oranı, BCAA destekli, kolay çözünen izole & konsantre whey formülü.",
+                            ImageUrl = "/images/products/whey-protein.jpg",
+                            IsActive = true,
+                            Name = "Whey Protein Tozu (Çikolata - 2000 g)",
+                            Price = 1850.00m,
+                            Stock = 35
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CategoryId = 2,
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "%100 saf mikronize kreatin monohidrat. Kas gücü, hacim ve patlayıcı kuvvet artışı sağlar.",
+                            ImageUrl = "/images/products/creatine.jpg",
+                            IsActive = true,
+                            Name = "Mikronize Kreatin Monohidrat (300 g)",
+                            Price = 620.00m,
+                            Stock = 40
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CategoryId = 2,
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Antrenman esnasında ve sonrasında kas yıkımını önlemeye ve toparlanmaya yardımcı esansiyel amino asitler.",
+                            ImageUrl = "/images/products/bcaa.jpg",
+                            IsActive = true,
+                            Name = "BCAA 4:1:1 Toz Form (Yeşil Elma - 500 g)",
+                            Price = 740.00m,
+                            Stock = 28
                         });
+                });
+
+            modelBuilder.Entity("GymBoom.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ActiveGymPlanId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("MembershipEndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActiveGymPlanId");
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("GymBoom.Models.UserSubscription", b =>
@@ -348,11 +466,27 @@ namespace GymBoom.Migrations
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
+                    b.Property<int?>("UserId1")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("GymPlanId");
 
+                    b.HasIndex("UserId1");
+
                     b.ToTable("UserSubscriptions");
+                });
+
+            modelBuilder.Entity("GymBoom.Models.Order", b =>
+                {
+                    b.HasOne("GymBoom.Models.User", "User")
+                        .WithMany("Orders")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GymBoom.Models.OrderItem", b =>
@@ -385,6 +519,15 @@ namespace GymBoom.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("GymBoom.Models.User", b =>
+                {
+                    b.HasOne("GymBoom.Models.GymPlan", "ActiveGymPlan")
+                        .WithMany()
+                        .HasForeignKey("ActiveGymPlanId");
+
+                    b.Navigation("ActiveGymPlan");
+                });
+
             modelBuilder.Entity("GymBoom.Models.UserSubscription", b =>
                 {
                     b.HasOne("GymBoom.Models.GymPlan", "GymPlan")
@@ -392,6 +535,10 @@ namespace GymBoom.Migrations
                         .HasForeignKey("GymPlanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("GymBoom.Models.User", null)
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("GymPlan");
                 });
@@ -404,6 +551,13 @@ namespace GymBoom.Migrations
             modelBuilder.Entity("GymBoom.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("GymBoom.Models.User", b =>
+                {
+                    b.Navigation("Orders");
+
+                    b.Navigation("Subscriptions");
                 });
 #pragma warning restore 612, 618
         }

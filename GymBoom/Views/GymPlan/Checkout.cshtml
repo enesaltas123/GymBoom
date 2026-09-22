@@ -1,0 +1,80 @@
+@model GymBoom.Models.GymPlan
+@{
+    ViewData["Title"] = "Ödeme - GymBoom";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-white">Ödemeyi Tamamla</h1>
+        <p class="text-secondary mt-2 fs-5">Seçtiğiniz paketi onaylayın ve hedeflerinize bir adım daha yaklaşın.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-4">
+            <div class="card gym-card rounded-4 shadow-sm border-secondary border-opacity-25 p-4" style="background-color: #161b22;">
+                <h4 class="fw-bold text-white border-bottom border-secondary border-opacity-25 pb-3 mb-4">Sipariş Özeti</h4>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="text-white fw-bold mb-1">@Model.Title</h5>
+                        <small class="text-secondary">@Model.DurationInMonths Aylık Üyelik</small>
+                    </div>
+                    <span class="fs-5 text-white fw-bold">@Model.Price.ToString("N0") ₺</span>
+                </div>
+
+                <hr class="border-secondary opacity-25 my-4">
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-white fs-5 fw-semibold">Toplam Tutar:</span>
+                    <span class="fs-3 text-danger fw-black">@Model.Price.ToString("N0") ₺</span>
+                </div>
+                <div class="text-secondary small mt-3 text-center">
+                    <i class="fs-6">🔒</i> Ödemeleriniz 256-bit SSL sertifikası ile şifrelenmektedir.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card gym-card rounded-4 shadow-sm border-secondary border-opacity-25 p-4" style="background-color: #161b22;">
+                <h4 class="fw-bold text-white mb-4">Kart Bilgileri</h4>
+
+                <form action="/GymPlan/Subscribe" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="planId" value="@Model.Id" />
+
+                    <div class="mb-4">
+                        <label class="form-label text-secondary fw-semibold">Kart Üzerindeki İsim</label>
+                        <input type="text" class="form-control bg-dark border-secondary text-white py-2" placeholder="Ad Soyad" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-secondary fw-semibold">Kart Numarası</label>
+                        <input type="text" class="form-control bg-dark border-secondary text-white py-2" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary fw-semibold">Son Kullanma Tarihi</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-white py-2" placeholder="AA / YY" maxlength="5" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary fw-semibold">CVV</label>
+                            <input type="password" class="form-control bg-dark border-secondary text-white py-2" placeholder="***" maxlength="3" required>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input bg-dark border-secondary" type="checkbox" id="terms" required>
+                        <label class="form-check-label text-secondary small" for="terms">
+                            Mesafeli Satış Sözleşmesi'ni okudum ve onaylıyorum.
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 py-3 fw-bold rounded-3 shadow-sm text-uppercase fs-5">
+                        Ödemeyi Tamamla
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
