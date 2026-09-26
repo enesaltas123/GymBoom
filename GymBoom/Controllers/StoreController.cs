@@ -1,30 +1,31 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using GymBoom.Data;
+using GymBoom.Models;
+using GymBoom.Data.Repositories;
 
 namespace GymBoom.Controllers;
 
 public class StoreController : Controller
 {
-    private readonly AppDbContext _context;
+    private readonly IRepository<Product> _productRepository;
 
-    public StoreController(AppDbContext context)
+    public StoreController(IRepository<Product> productRepository)
     {
-        _context = context;
+        _productRepository = productRepository;
     }
 
-    [HttpGet]
     public async Task<IActionResult> Index()
     {
-        // Kategorileri ViewBag ile sayfaya yolla
-        ViewBag.Categories = await _context.Categories.Where(c => c.IsActive).ToListAsync();
-
-        // Ürünleri yolla
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .Where(p => p.IsActive)
-            .ToListAsync();
-
+        var products = await _productRepository.GetAllAsync();
         return View(products);
+    }
+
+    public async Task<IActionResult> Details(int id)
+    {
+        var product = await _productRepository.GetByIdAsync(id);
+        if (product == null)
+        {
+            return NotFound();
+        }
+        return View(product);
     }
 }

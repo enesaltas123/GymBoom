@@ -65,9 +65,10 @@
                             <a href="/Cart" class="btn btn-outline-secondary btn-sm px-3 fw-semibold text-white me-2">
                                 🛒 Sepetim
                             </a>
-                            <span class="text-light fw-semibold me-2 small">
+                            <!-- SPAN ETİKETİ TIKLANABİLİR A ETİKETİNE ÇEVRİLDİ -->
+                            <a asp-controller="Account" asp-action="Profile" class="text-light fw-semibold me-2 small text-decoration-none">
                                 👤 @User.Identity.Name
-                            </span>
+                            </a>
                             <form action="/Account/Logout" method="post" class="d-inline m-0">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-outline-danger btn-sm px-3 fw-semibold">

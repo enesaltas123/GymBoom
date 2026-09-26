@@ -1,33 +1,33 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using GymBoom.Data;
 using GymBoom.Models;
+using GymBoom.Data.Repositories;
 
 namespace GymBoom.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly AppDbContext _context;
+    private readonly IRepository<GymPlan> _gymPlanRepository;
+    private readonly IRepository<Product> _productRepository;
 
-    public HomeController(AppDbContext context)
+    public HomeController(IRepository<GymPlan> gymPlanRepository, IRepository<Product> productRepository)
     {
-        _context = context;
+        _gymPlanRepository = gymPlanRepository;
+        _productRepository = productRepository;
     }
 
     public async Task<IActionResult> Index()
     {
         var model = new HomeIndexViewModel
         {
-            // Tanıtım vitrini için 2 popüler plan getiren kod
-            Plans = await _context.GymPlans
+            Plans = await _gymPlanRepository.Query()
                 .Where(p => p.IsActive)
                 .OrderByDescending(p => p.DurationInMonths)
                 .Take(2)
                 .ToListAsync(),
 
-            // Tanıtım vitrini için 3 adet popüler ürün getiren kod
-            Products = await _context.Products
+            Products = await _productRepository.Query()
                 .Include(p => p.Category)
                 .Where(p => p.IsActive)
                 .OrderByDescending(p => p.Id)

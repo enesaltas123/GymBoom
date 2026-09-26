@@ -1,33 +1,29 @@
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization; 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using GymBoom.Data;
 using GymBoom.Models;
 using GymBoom.Models.ViewModels.Account;
+using GymBoom.Data.Repositories;
 
 namespace GymBoom.Controllers;
 
 public class AccountController : Controller
 {
-    private readonly AppDbContext _context;
+    private readonly IRepository<User> _userRepository;
+    private readonly IRepository<Order> _orderRepository;
 
-    public AccountController(AppDbContext context)
+    public AccountController(IRepository<User> userRepository, IRepository<Order> orderRepository)
     {
-        _context = context;
+        _userRepository = userRepository;
+        _orderRepository = orderRepository;
     }
 
     [HttpGet]
     public IActionResult Register()
     {
-        if (User.Identity != null && User.Identity.IsAuthenticated)
-        {
-            return RedirectToAction("Index", "Home");
-        }
+        if (User.Identity != null && User.Identity.IsAuthenticated) return RedirectToAction("Index", "Home");
         return View();
     }
 
@@ -35,12 +31,9 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
+        if (!ModelState.IsValid) return View(model);
 
-        var existingUser = await _context.Users
+        var existingUser = await _userRepository.Query()
             .AnyAsync(u => u.Email.ToLower() == model.Email.ToLower());
 
         if (existingUser)
@@ -61,8 +54,8 @@ public class AccountController : Controller
             IsActive = true
         };
 
-        _context.Users.Add(newUser);
-        await _context.SaveChangesAsync();
+        await _userRepository.AddAsync(newUser);
+        await _userRepository.SaveAsync();
 
         var claims = new List<Claim>
         {
@@ -73,39 +66,26 @@ public class AccountController : Controller
         };
 
         var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
-        var authProperties = new AuthenticationProperties
-        {
-            IsPersistent = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
-        };
+        var authProperties = new AuthenticationProperties { IsPersistent = true, ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7) };
 
         await HttpContext.SignInAsync("Cookies", new ClaimsPrincipal(claimsIdentity), authProperties);
-
         return RedirectToAction("Index", "Home");
     }
 
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
-        if (User.Identity != null && User.Identity.IsAuthenticated)
-        {
-            return RedirectToAction("Index", "Home");
-        }
-
-        var model = new LoginViewModel { ReturnUrl = returnUrl };
-        return View(model);
+        if (User.Identity != null && User.Identity.IsAuthenticated) return RedirectToAction("Index", "Home");
+        return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
+        if (!ModelState.IsValid) return View(model);
 
-        var user = await _context.Users
+        var user = await _userRepository.Query()
             .FirstOrDefaultAsync(u => u.Email.ToLower() == model.Email.ToLower() && u.IsActive);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
@@ -123,11 +103,7 @@ public class AccountController : Controller
         };
 
         var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
-        var authProperties = new AuthenticationProperties
-        {
-            IsPersistent = true,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
-        };
+        var authProperties = new AuthenticationProperties { IsPersistent = true, ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7) };
 
         await HttpContext.SignInAsync("Cookies", new ClaimsPrincipal(claimsIdentity), authProperties);
 
@@ -138,7 +114,6 @@ public class AccountController : Controller
             {
                 return RedirectToAction("Index", "Store"); 
             }
-            
             return Redirect(model.ReturnUrl);
         }
 
@@ -159,21 +134,26 @@ public class AccountController : Controller
     public async Task<IActionResult> Profile()
     {
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdString, out int userId))
-        {
-            return RedirectToAction("Login");
-        }
+        if (!int.TryParse(userIdString, out int userId)) return RedirectToAction("Login");
 
-        // Kullanıcıyı bulurken "ActiveGymPlan" (Üyelik Paketi) verisini de beraberinde getiriyorum (Include)
-        var user = await _context.Users
+        var user = await _userRepository.Query()
             .Include(u => u.ActiveGymPlan)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (user == null)
-        {
-            return RedirectToAction("Login");
-        }
+        if (user == null) return RedirectToAction("Login");
+        
+        var userOrders = await _orderRepository.Query()
+            .Include(o => o.OrderItems)
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedDate)
+            .ToListAsync();
 
-        return View(user);
+        var model = new ProfileViewModel
+        {
+            AppUser = user,
+            PastOrders = userOrders
+        };
+
+        return View(model);
     }
 }
