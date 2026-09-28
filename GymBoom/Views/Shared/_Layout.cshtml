@@ -57,6 +57,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-light fw-semibold" href="/Store">Mağaza</a>
                         </li>
+                        @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-bold" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                                    ⚙️ Admin Panel
+                                </a>
+                            </li>
+                        }
                     </ul>
                     
                     <div class="d-flex align-items-center gap-2">
@@ -65,7 +73,6 @@
                             <a href="/Cart" class="btn btn-outline-secondary btn-sm px-3 fw-semibold text-white me-2">
                                 🛒 Sepetim
                             </a>
-                            <!-- SPAN ETİKETİ TIKLANABİLİR A ETİKETİNE ÇEVRİLDİ -->
                             <a asp-controller="Account" asp-action="Profile" class="text-light fw-semibold me-2 small text-decoration-none">
                                 👤 @User.Identity.Name
                             </a>

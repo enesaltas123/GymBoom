@@ -79,18 +79,23 @@ public class AccountController : Controller
         return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+[HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
 
         var user = await _userRepository.Query()
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == model.Email.ToLower() && u.IsActive);
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == model.Email.ToLower());
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
         {
             ModelState.AddModelError(string.Empty, "Geçersiz e-posta veya şifre girdiniz.");
+            return View(model);
+        }
+
+        if (user.IsActive == false)
+        {
+            ModelState.AddModelError(string.Empty, "Hesabınız askıya alınmıştır. Lütfen yönetici ile iletişime geçin.");
             return View(model);
         }
 
@@ -107,6 +112,7 @@ public class AccountController : Controller
 
         await HttpContext.SignInAsync("Cookies", new ClaimsPrincipal(claimsIdentity), authProperties);
 
+        // Yönlendirme işlemleri
         if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
         {
             if (model.ReturnUrl.Contains("/Cart/AddToCart", StringComparison.OrdinalIgnoreCase) || 

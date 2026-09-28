@@ -15,6 +15,10 @@
     </style>
 </head>
 <body class="d-flex">
+    
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    }
 
     <div class="admin-sidebar p-3 d-flex flex-column">
         <a href="/" class="d-flex align-items-center mb-4 text-white text-decoration-none">
@@ -23,27 +27,31 @@
         <hr class="border-secondary opacity-25">
         <ul class="nav nav-pills flex-column mb-auto mt-2">
             <li class="nav-item">
-                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="nav-link active">
+                <!-- asp etiketleri yerine doğrudan href="/Admin/Dashboard" yazdık -->
+                <a href="/Admin/Dashboard" 
+                   class="nav-link @(currentController == "Dashboard" ? "active" : "")">
                     <i class="bi bi-speedometer2 me-2"></i> Dashboard
                 </a>
             </li>
             <li>
-                <a href="#" class="nav-link">
+                <!-- Doğrudan href="/Admin/Product" yazdık -->
+                <a href="/Admin/Product" 
+                   class="nav-link @(currentController == "Product" ? "active" : "")">
                     <i class="bi bi-box-seam me-2"></i> Ürün Yönetimi
                 </a>
             </li>
             <li>
-                <a href="#" class="nav-link">
+                <a href="/Admin/Order" class="nav-link">
                     <i class="bi bi-card-checklist me-2"></i> Siparişler
                 </a>
             </li>
             <li>
-                <a href="#" class="nav-link">
+                <a href="/Admin/User" class="nav-link">
                     <i class="bi bi-people me-2"></i> Üyeler
                 </a>
             </li>
             <li>
-                <a href="#" class="nav-link">
+                <a href="/Admin/GymPlan" class="nav-link">
                     <i class="bi bi-tags me-2"></i> Üyelik Paketleri
                 </a>
             </li>

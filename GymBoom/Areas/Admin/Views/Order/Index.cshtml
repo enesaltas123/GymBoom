@@ -1,0 +1,73 @@
+@model IEnumerable<GymBoom.Models.Order>
+@{
+    ViewData["Title"] = "Sipariş Yönetimi";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-light">📋 Sipariş Yönetimi</h2>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card gym-card">
+        <div class="card-body p-0">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Sipariş No</th>
+                        <th>Tarih</th>
+                        <th>Müşteri ID</th>
+                        <th>Tutar</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="align-middle fw-bold text-info">@item.OrderNumber</td>
+                                <td class="align-middle">@item.CreatedDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td class="align-middle">@item.UserId</td>
+                                <td class="align-middle text-success fw-semibold">@item.TotalAmount.ToString("C")</td>
+                                <td class="align-middle">
+                                    <span class="badge @(item.Status == "Onaylandı" ? "bg-success" : (item.Status == "İptal" ? "bg-danger" : "bg-warning"))">
+                                        @item.Status
+                                    </span>
+                                </td>
+                                <td class="text-end align-middle">
+                                    <form asp-action="UpdateStatus" method="post" class="d-inline-flex align-items-center">
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-light me-2">Detay</a>
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <select name="newStatus" class="form-select form-select-sm bg-dark text-light border-secondary me-2" style="width: 140px;">
+                                            <option value="Onaylandı" selected="@(item.Status == "Onaylandı")">Onaylandı</option>
+                                            <option value="Hazırlanıyor" selected="@(item.Status == "Hazırlanıyor")">Hazırlanıyor</option>
+                                            <option value="Kargolandı" selected="@(item.Status == "Kargolandı")">Kargolandı</option>
+                                            <option value="İptal" selected="@(item.Status == "İptal")">İptal</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-outline-info">Güncelle</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">Henüz hiç sipariş bulunmuyor.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

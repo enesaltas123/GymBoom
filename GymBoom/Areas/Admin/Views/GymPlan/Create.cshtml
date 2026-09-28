@@ -1,0 +1,54 @@
+@model GymBoom.Models.GymPlan
+@{
+    ViewData["Title"] = "Yeni Paket Ekle";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card gym-card">
+                <div class="card-header bg-dark border-bottom border-secondary pb-0">
+                    <h4 class="text-light mt-2">➕ Yeni Paket Ekle</h4>
+                </div>
+                <div class="card-body gym-card-inner">
+                    <form asp-action="Create" method="post">
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label text-light fw-semibold">Paket Adı</label>
+                            <input asp-for="Title" class="form-control bg-dark text-light border-secondary" placeholder="Örn: 6 Aylık VIP Paket" required />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label text-light fw-semibold">Fiyat (₺)</label>
+                                <input asp-for="Price" type="number" step="0.01" class="form-control bg-dark text-light border-secondary" required />
+                                <span asp-validation-for="Price" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DurationInMonths" class="form-label text-light fw-semibold">Süre (Ay)</label>
+                                <input asp-for="DurationInMonths" type="number" class="form-control bg-dark text-light border-secondary" placeholder="Örn: 6" required />
+                                <span asp-validation-for="DurationInMonths" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Features" class="form-label text-light fw-semibold">Özellikler</label>
+                            <input asp-for="Features" class="form-control bg-dark text-light border-secondary" placeholder="Örn: Havuz, Sauna, Grup Dersleri..." />
+                            <span class="text-muted small">Özellikleri virgülle ayırarak yazabilirsiniz.</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Description" class="form-label text-light fw-semibold">Detaylı Açıklama</label>
+                            <textarea asp-for="Description" class="form-control bg-dark text-light border-secondary" rows="3"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary">İptal</a>
+                            <button type="submit" class="btn btn-success fw-bold px-4">Kaydet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div> 
+    </div>
+</div>
