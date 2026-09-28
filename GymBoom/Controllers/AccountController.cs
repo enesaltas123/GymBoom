@@ -112,7 +112,6 @@ public class AccountController : Controller
 
         await HttpContext.SignInAsync("Cookies", new ClaimsPrincipal(claimsIdentity), authProperties);
 
-        // Yönlendirme işlemleri
         if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
         {
             if (model.ReturnUrl.Contains("/Cart/AddToCart", StringComparison.OrdinalIgnoreCase) || 

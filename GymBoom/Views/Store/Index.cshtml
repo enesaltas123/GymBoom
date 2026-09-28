@@ -4,7 +4,6 @@
     var categories = ViewBag.Categories as List<GymBoom.Models.Category> ?? new();
 }
 
-<!-- MAĞAZA BAŞLIK ALANI -->
 <div class="text-center py-4 mb-4">
     <span class="badge bg-danger px-3 py-2 text-uppercase fw-bold mb-2 shadow-sm">
         GYMBOOM OFFICIAL STORE
@@ -17,7 +16,6 @@
 
 <div class="container mb-5">
 
-    <!-- BAŞARI MESAJI (Yeni Eklendi) -->
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show bg-success bg-opacity-25 border border-success text-white mb-4 rounded-3 shadow-sm" role="alert">
@@ -27,80 +25,96 @@
         </div>
     }
 
-    <!-- GÖRSEL KATEGORİ BUTONLARI -->
     <div class="d-flex justify-content-center flex-wrap gap-2 mb-5">
-        <button type="button" class="btn btn-danger px-4 py-2 rounded-pill fw-semibold shadow-sm">
+        <a href="/Store/Index" 
+           class="btn @(ViewBag.CurrentCategory == null ? "btn-danger" : "btn-outline-secondary text-light border-opacity-50") px-4 py-2 rounded-pill fw-semibold shadow-sm">
             Tümü
-        </button>
+        </a>
+        
         @foreach (var cat in categories)
         {
-            <button type="button" class="btn btn-outline-secondary text-light px-4 py-2 rounded-pill fw-semibold border-opacity-50">
+            <a href="/Store/Index?categoryId=@cat.Id" 
+               class="btn @(ViewBag.CurrentCategory == cat.Id ? "btn-danger" : "btn-outline-secondary text-light border-opacity-50") px-4 py-2 rounded-pill fw-semibold shadow-sm">
                 @cat.Name
-            </button>
+            </a>
         }
     </div>
 
-    <!-- ÜRÜNLER GRID ALANI -->
-    <div class="row g-4">
-        @foreach (var product in Model)
-        {
-            <div class="col-lg-4 col-md-6">
-                <div class="card gym-card rounded-4 h-100 p-3 d-flex flex-column justify-content-between shadow-sm">
-                    
-                    <!-- Görsel & Kategori Rozeti -->
-                    <div class="rounded-3 text-center py-4 mb-3 position-relative" style="background-color: #21262d; border: 1px solid #30363d; height: 180px; display: flex; align-items: center; justify-content: center;">
-                        @if (product.CategoryId == 1)
-                        {
-                            <span class="fs-1">🏋️‍♂️</span>
-                        }
-                        else if (product.CategoryId == 2)
-                        {
-                            <span class="fs-1">🥤</span>
-                        }
-                        else
-                        {
-                            <span class="fs-1">🥊</span>
-                        }
-
-                        <span class="position-absolute top-0 start-0 badge bg-dark text-secondary m-2 border border-secondary border-opacity-25">
-                            @(product.Category?.Name ?? "Ekipman")
-                        </span>
-
-                        @if (product.Stock <= 15)
-                        {
-                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2 fw-bold">
-                                Son @product.Stock Adet
-                            </span>
-                        }
-                    </div>
-
-                    <!-- Ürün Başlık & Açıklama -->
-                    <div class="mb-3">
-                        <h5 class="fw-bold text-white mb-2">@product.Name</h5>
-                        <p class="text-secondary small mb-0" style="min-height: 40px;">
-                            @product.Description
-                        </p>
-                    </div>
-
-                    <!-- Fiyat, Stok ve Sepet Butonu -->
-                    <div class="pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center mt-auto">
-                        <div>
-                            <div class="fs-4 fw-bold text-white">@product.Price.ToString("N2") ₺</div>
-                            <small class="text-success fw-semibold">✓ Stokta Mevcut</small>
-                        </div>
-                        
-                        <!-- ÇALIŞAN SEPETE EKLE FORMU (Güncellendi) -->
-                        <form action="/Cart/AddToCart" method="post" class="m-0">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="productId" value="@product.Id" />
-                            <button type="submit" class="btn btn-danger px-3 py-2 fw-semibold rounded-3 shadow-sm">
-                                Sepete Ekle
-                            </button>
-                        </form>
-                    </div>
-
-                </div>
+    @if (!Model.Any())
+    {
+        <div class="col-12 text-center py-5">
+            <div class="p-5 rounded-4 shadow-sm mx-auto" style="background-color: #161b22; border: 1px dashed #30363d; max-width: 600px;">
+                <span class="display-1 mb-3 d-block opacity-75">📦</span>
+                <h3 class="text-white fw-bold mb-3">Bu Kategorideki Stokları Tükettik!</h3>
+                <p class="text-secondary fs-6 mb-0">
+                    Görünüşe göre sporcularımız bu kategorideki tüm ekipmanları çoktan kaptı. Yeni ürünler yolda! <br/><br/>
+                    Antrenmanını yarım bırakma, mağazadaki diğer efsane ürünlere göz atmaya devam et.
+                </p>
+                <a href="/Store/Index" class="btn btn-outline-danger mt-4 px-4 py-2 rounded-pill fw-semibold shadow-sm">
+                    Tüm Ürünlere Dön
+                </a>
             </div>
-        }
-    </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var product in Model)
+            {
+                <div class="col-lg-4 col-md-6">
+                    <div class="card gym-card rounded-4 h-100 p-3 d-flex flex-column justify-content-between shadow-sm">
+                        
+                        <div class="rounded-3 text-center py-4 mb-3 position-relative" style="background-color: #21262d; border: 1px solid #30363d; height: 180px; display: flex; align-items: center; justify-content: center;">
+                            @if (product.CategoryId == 1)
+                            {
+                                <span class="fs-1">🏋️‍♂️</span>
+                            }
+                            else if (product.CategoryId == 2)
+                            {
+                                <span class="fs-1">🥤</span>
+                            }
+                            else
+                            {
+                                <span class="fs-1">🥊</span>
+                            }
+
+                            <span class="position-absolute top-0 start-0 badge bg-dark text-secondary m-2 border border-secondary border-opacity-25">
+                                @(product.Category?.Name ?? "Ekipman")
+                            </span>
+
+                            @if (product.Stock <= 15)
+                            {
+                                <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2 fw-bold">
+                                    Son @product.Stock Adet
+                                </span>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <h5 class="fw-bold text-white mb-2">@product.Name</h5>
+                            <p class="text-secondary small mb-0" style="min-height: 40px;">
+                                @product.Description
+                            </p>
+                        </div>
+
+                        <div class="pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center mt-auto">
+                            <div>
+                                <div class="fs-4 fw-bold text-white">@product.Price.ToString("N2") ₺</div>
+                                <small class="text-success fw-semibold">✓ Stokta Mevcut</small>
+                            </div>
+                            
+                            <form action="/Cart/AddToCart" method="post" class="m-0">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <button type="submit" class="btn btn-danger px-3 py-2 fw-semibold rounded-3 shadow-sm">
+                                    Sepete Ekle
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+    }
 </div>
