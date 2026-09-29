@@ -135,7 +135,22 @@ public class CartController : Controller
         };
 
         await _orderRepository.AddAsync(order);
+
+        foreach (var item in cart)
+        {
+            var product = await _productRepository.GetByIdAsync(item.ProductId);
+            if (product != null)
+            {
+                product.Stock -= item.Quantity;
+                
+                if(product.Stock < 0) product.Stock = 0;
+                
+                _productRepository.Update(product);
+            }
+        }
+
         await _orderRepository.SaveAsync();
+        await _productRepository.SaveAsync();
 
         HttpContext.Session.Remove("Cart");
         TempData["SuccessMessage"] = $"Siparişiniz başarıyla alındı! Takip Numaranız: {order.OrderNumber}";
