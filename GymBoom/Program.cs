@@ -12,6 +12,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Generic Repository Mimarisi Kaydı
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+builder.Services.AddHttpClient();
+
 // Session Desteği
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -47,7 +49,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Session middleware'i Routing'den sonra, Authentication'dan önce veya sonra gelebilir
 app.UseSession();
 
 app.UseAuthentication();

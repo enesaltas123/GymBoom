@@ -49,4 +49,16 @@ public class CategoriesController : ControllerBase
         await _categoryRepository.SaveAsync();
         return NoContent();
     }
+
+    [HttpPost("{id}/toggle")]
+    public async Task<IActionResult> ToggleStatus(int id)
+    {
+        var category = await _categoryRepository.GetByIdAsync(id);
+        if (category == null) return NotFound();
+
+        category.IsActive = !category.IsActive; 
+        
+        await _categoryRepository.SaveAsync();
+        return Ok(category);
+    }
 }

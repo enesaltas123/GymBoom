@@ -1,0 +1,38 @@
+@model GymBoom.Models.Category
+@{
+    ViewData["Title"] = "Yeni Kategori Ekle (API Bağlantılı)";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white">Yeni Kategori Ekle (REST API üzerinden)</h2>
+        <a href="/Admin/Category/Index" class="btn btn-outline-secondary fw-bold shadow-sm">
+            ← Listeye Dön
+        </a>
+    </div>
+
+    <form asp-area="Admin" asp-controller="Category" asp-action="Create" method="post" class="p-4 rounded-3 shadow" style="background-color: #161b22; border: 1px solid #30363d; max-width: 600px;">
+        
+        <div class="text-danger" asp-validation-summary="All"></div>
+
+        <div class="mb-3">
+            <label class="form-label text-secondary">Kategori Adı</label>
+            <input asp-for="Name" class="form-control bg-dark text-white border-secondary" placeholder="Örn: Kardiyo Ekipmanları" required />
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label text-secondary">Açıklama</label>
+            <input asp-for="Description" class="form-control bg-dark text-white border-secondary" placeholder="Kategori detayı..." />
+        </div>
+        
+        <div class="mb-4 form-check">
+            <!-- Varsayılan olarak işaretli gelmesi için checked eklendi -->
+            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked="checked" />
+            <label class="form-check-label text-white">Bu Kategori Mağazada Görünsün (Aktif)</label>
+        </div>
+        
+        <button type="submit" class="btn btn-danger px-4 py-2 fw-bold">
+            API'ye Gönder ve Kaydet
+        </button>
+    </form>
+</div>

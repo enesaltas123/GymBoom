@@ -61,22 +61,27 @@
         <div class="row g-4">
             @foreach (var product in Model)
             {
+                string imageName = "default.jpg";
+                switch (product.Id)
+                {
+                    case 1: imageName = "Adjustable_dumbbells.jpg"; break;
+                    case 2: imageName = "Olympic_barbell.jpg"; break;
+                    case 3: imageName = "Resistance _bands.jpg"; break;
+                    case 4: imageName = "Yoga_mat.jpg"; break;
+                    case 5: imageName = "Weightlifting_belt_leather.jpg"; break;
+                    case 6: imageName = "Gym_gloves.jpg"; break;
+                    case 7: imageName = "Metal_protein_shaker.jpg"; break;
+                    case 8: imageName = "Protein_powder_chocolate.jpg"; break;
+                    case 9: imageName = "Creatine_supplement_powder.jpg"; break;
+                    case 10: imageName = "Pre_workout_powder.jpg"; break;
+                }
+
                 <div class="col-lg-4 col-md-6">
                     <div class="card gym-card rounded-4 h-100 p-3 d-flex flex-column justify-content-between shadow-sm">
                         
-                        <div class="rounded-3 text-center py-4 mb-3 position-relative" style="background-color: #21262d; border: 1px solid #30363d; height: 180px; display: flex; align-items: center; justify-content: center;">
-                            @if (product.CategoryId == 1)
-                            {
-                                <span class="fs-1">🏋️‍♂️</span>
-                            }
-                            else if (product.CategoryId == 2)
-                            {
-                                <span class="fs-1">🥤</span>
-                            }
-                            else
-                            {
-                                <span class="fs-1">🥊</span>
-                            }
+                        <div class="rounded-3 text-center mb-3 position-relative" style="background-color: #21262d; border: 1px solid #30363d; height: 220px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            
+                            <img src="~/StoreImages/@imageName" alt="@product.Name" style="width: 100%; height: 100%; object-fit: contain;" class="p-2" />
 
                             <span class="position-absolute top-0 start-0 badge bg-dark text-secondary m-2 border border-secondary border-opacity-25">
                                 @(product.Category?.Name ?? "Ekipman")
@@ -89,7 +94,7 @@
                                 </span>
                             }
                         </div>
-
+                        
                         <div class="mb-3">
                             <h5 class="fw-bold text-white mb-2">@product.Name</h5>
                             <p class="text-secondary small mb-0" style="min-height: 40px;">

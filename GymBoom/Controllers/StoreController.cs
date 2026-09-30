@@ -15,19 +15,30 @@ public class StoreController : Controller
         _categoryRepository = categoryRepository;
     }
 
+    [HttpGet]
     public async Task<IActionResult> Index(int? categoryId)
     {
-        ViewBag.Categories = await _categoryRepository.GetAllAsync();
-        ViewBag.CurrentCategory = categoryId; 
+        var allCategories = await _categoryRepository.GetAllAsync();
+        
+        var activeCategories = allCategories.Where(c => c.IsActive == true).ToList();
+        ViewBag.Categories = activeCategories;
 
         var products = await _productRepository.GetAllAsync();
 
+        var activeCategoryIds = activeCategories.Select(c => c.Id).ToList();
+        var visibleProducts = products.Where(p => activeCategoryIds.Contains(p.CategoryId)).ToList();
+
         if (categoryId.HasValue)
         {
-            products = products.Where(p => p.CategoryId == categoryId).ToList();
+            visibleProducts = visibleProducts.Where(p => p.CategoryId == categoryId.Value).ToList();
+            ViewBag.CurrentCategory = categoryId.Value;
+        }
+        else
+        {
+            ViewBag.CurrentCategory = null;
         }
 
-        return View(products);
+        return View(visibleProducts);
     }
 
     public async Task<IActionResult> Details(int id)

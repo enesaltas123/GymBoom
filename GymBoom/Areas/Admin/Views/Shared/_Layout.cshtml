@@ -27,31 +27,41 @@
         <hr class="border-secondary opacity-25">
         <ul class="nav nav-pills flex-column mb-auto mt-2">
             <li class="nav-item">
-                <!-- asp etiketleri yerine doğrudan href="/Admin/Dashboard" yazdık -->
                 <a href="/Admin/Dashboard" 
                    class="nav-link @(currentController == "Dashboard" ? "active" : "")">
                     <i class="bi bi-speedometer2 me-2"></i> Dashboard
                 </a>
             </li>
+            
             <li>
-                <!-- Doğrudan href="/Admin/Product" yazdık -->
+                <a href="/Admin/Category" 
+                   class="nav-link @(currentController == "Category" ? "active" : "")">
+                    <i class="bi bi-collection me-2"></i> Kategori Yönetimi
+                </a>
+            </li>
+
+            <li>
                 <a href="/Admin/Product" 
                    class="nav-link @(currentController == "Product" ? "active" : "")">
                     <i class="bi bi-box-seam me-2"></i> Ürün Yönetimi
                 </a>
             </li>
+            
             <li>
-                <a href="/Admin/Order" class="nav-link">
+                <a href="/Admin/Order" 
+                   class="nav-link @(currentController == "Order" ? "active" : "")">
                     <i class="bi bi-card-checklist me-2"></i> Siparişler
                 </a>
             </li>
             <li>
-                <a href="/Admin/User" class="nav-link">
+                <a href="/Admin/User" 
+                   class="nav-link @(currentController == "User" ? "active" : "")">
                     <i class="bi bi-people me-2"></i> Üyeler
                 </a>
             </li>
             <li>
-                <a href="/Admin/GymPlan" class="nav-link">
+                <a href="/Admin/GymPlan" 
+                   class="nav-link @(currentController == "GymPlan" ? "active" : "")">
                     <i class="bi bi-tags me-2"></i> Üyelik Paketleri
                 </a>
             </li>

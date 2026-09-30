@@ -31,6 +31,7 @@
     <Folder Include="Models\ViewModels\" />
     <Folder Include="Models\ViewModels\Account\" />
     <Folder Include="Models\ViewModels\Cart\" />
+    <Folder Include="StoreImages\" />
   </ItemGroup>
 
 </Project>
