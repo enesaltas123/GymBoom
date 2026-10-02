@@ -1,0 +1,3 @@
+admin e postası = admin@gymboom.com
+
+Şifre: admin1234

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GymBoom.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260926001324_FixUserIdShadowProperty")]
-    partial class FixUserIdShadowProperty
+    [Migration("20261001235154_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

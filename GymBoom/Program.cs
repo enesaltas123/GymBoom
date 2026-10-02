@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using GymBoom.Data;
 using GymBoom.Data.Repositories;
+using GymBoom.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,4 +63,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.UseDatabaseSeeder();
 app.Run();

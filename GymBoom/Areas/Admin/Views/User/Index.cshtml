@@ -8,6 +8,16 @@
         <h2 class="text-light">👥 Üye Yönetimi</h2>
     </div>
 
+    <!-- Hata Mesajı Alanı (Yeni Eklendi) -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Başarı Mesajı Alanı -->
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -61,12 +71,21 @@
                                     </span>
                                 </td>
                                 <td class="text-end align-middle">
-                                    <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post" class="d-inline" 
-                                          onsubmit="return confirm('@(item.IsActive ? "Bu üyeyi pasife almak istediğinize emin misiniz?" : "Bu üyeyi tekrar aktifleştirmek istediğinize emin misiniz?")');">
-                                        <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-outline-warning" : "btn-outline-success")">
-                                            @(item.IsActive ? "Pasife Al" : "Aktifleştir")
+                                    @if (item.Role == "Admin")
+                                    {
+                                        <button class="btn btn-sm btn-secondary" disabled style="cursor: not-allowed;">
+                                            <i class="bi bi-shield-lock me-1"></i>Koruma Altında
                                         </button>
-                                    </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="ToggleStatus" asp-route-id="@item.Id" method="post" class="d-inline" 
+                                              onsubmit="return confirm('@(item.IsActive ? "Bu üyeyi pasife almak istediğinize emin misiniz?" : "Bu üyeyi tekrar aktifleştirmek istediğinize emin misiniz?")');">
+                                            <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-outline-warning" : "btn-outline-success")">
+                                                @(item.IsActive ? "Pasife Al" : "Aktifleştir")
+                                            </button>
+                                        </form>
+                                    }
                                 </td>
                             </tr>
                         }

@@ -35,6 +35,11 @@ public class UserController : Controller
         var user = await _userRepository.GetByIdAsync(id);
         if (user != null)
         {
+            if (user.Role == "Admin")
+            {
+                TempData["ErrorMessage"] = "Sistem yöneticisi hesabı pasife alınamaz!";
+                return RedirectToAction(nameof(Index));
+            }
             user.IsActive = !user.IsActive;
             _userRepository.Update(user);
             await _userRepository.SaveAsync();

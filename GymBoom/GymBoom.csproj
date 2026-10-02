@@ -26,6 +26,7 @@
     <Folder Include="Areas\Admin\Views\Product\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
     <Folder Include="Data\" />
+    <Folder Include="Data\Extensions\" />
     <Folder Include="Data\Repositories\" />
     <Folder Include="Extensions\" />
     <Folder Include="Models\ViewModels\" />

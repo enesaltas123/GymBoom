@@ -131,12 +131,11 @@ namespace GymBoom.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                     CustomerFullName = table.Column<string>(type: "text", nullable: false),
                     GymPlanId = table.Column<int>(type: "integer", nullable: false),
                     StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UserId1 = table.Column<int>(type: "integer", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
@@ -150,10 +149,11 @@ namespace GymBoom.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserSubscriptions_Users_UserId1",
-                        column: x => x.UserId1,
+                        name: "FK_UserSubscriptions_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -253,9 +253,9 @@ namespace GymBoom.Migrations
                 column: "GymPlanId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserSubscriptions_UserId1",
+                name: "IX_UserSubscriptions_UserId",
                 table: "UserSubscriptions",
-                column: "UserId1");
+                column: "UserId");
         }
 
         /// <inheritdoc />
