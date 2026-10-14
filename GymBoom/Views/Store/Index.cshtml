@@ -4,6 +4,35 @@
     var categories = ViewBag.Categories as List<GymBoom.Models.Category> ?? new();
 }
 
+<div class="position-fixed bottom-0 end-0 p-4" style="z-index: 1050;">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show bg-success bg-opacity-25 border border-success text-white shadow-lg rounded-3" role="alert" style="min-width: 300px; backdrop-filter: blur(10px);">
+            <div class="d-flex align-items-center mb-2">
+                <span class="fs-5 me-2">✅</span> 
+                <strong class="me-auto">Başarılı!</strong>
+            </div>
+            <div>@TempData["SuccessMessage"]</div>
+            <div class="mt-3 pt-2 border-top border-success border-opacity-25">
+                <a href="/Cart" class="btn btn-sm btn-success fw-bold w-100 text-dark">Sepete Git 🛒</a>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show bg-danger bg-opacity-25 border border-danger text-white shadow-lg rounded-3" role="alert" style="min-width: 300px; backdrop-filter: blur(10px);">
+            <div class="d-flex align-items-center mb-2">
+                <span class="fs-5 me-2">⚠️</span> 
+                <strong class="me-auto">Uyarı</strong>
+            </div>
+            <div>@TempData["ErrorMessage"]</div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+</div>
+
 <div class="text-center py-4 mb-4">
     <span class="badge bg-danger px-3 py-2 text-uppercase fw-bold mb-2 shadow-sm">
         GYMBOOM OFFICIAL STORE
@@ -15,16 +44,6 @@
 </div>
 
 <div class="container mb-5">
-    
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show bg-success bg-opacity-25 border border-success text-white mb-4 rounded-3 shadow-sm" role="alert">
-            ✓ @TempData["SuccessMessage"]
-            <a href="/Cart" class="text-white fw-bold text-decoration-underline ms-2">Sepete Git</a>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
     <div class="row g-4">
         
         <div class="col-lg-3">
@@ -126,13 +145,19 @@
                                 
                                 <div class="rounded-3 text-center mb-3 position-relative" style="background-color: #21262d; height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
                                     
-                                    <img src="@imgPath" alt="@product.Name" style="width: 100%; height: 100%; object-fit: contain;" class="p-2" />
+                                    <img src="@imgPath" alt="@product.Name" style="width: 100%; height: 100%; object-fit: contain;" class="p-2" onerror="this.onerror=null; this.src='/StoreImages/default.jpg';" />
 
                                     <span class="position-absolute top-0 start-0 badge bg-dark text-secondary m-2 border border-secondary border-opacity-25">
                                         @(product.Category?.Name ?? "Ekipman")
                                     </span>
 
-                                    @if (product.Stock <= 15)
+                                    @if (product.Stock <= 0)
+                                    {
+                                        <span class="position-absolute top-0 end-0 badge bg-danger text-white m-2 fw-bold shadow-sm">
+                                            Tükendi
+                                        </span>
+                                    }
+                                    else if (product.Stock <= 15)
                                     {
                                         <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2 fw-bold">
                                             Son @product.Stock
@@ -150,16 +175,33 @@
                                 <div class="pt-3 border-top border-secondary border-opacity-25 mt-auto">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="fs-5 fw-bold text-white">@product.Price.ToString("N2") ₺</div>
-                                        <small class="text-success fw-semibold" style="font-size: 0.7rem;">✓ Stokta</small>
+                                        
+                                        @if (product.Stock > 0)
+                                        {
+                                            <small class="text-success fw-semibold" style="font-size: 0.7rem;">✓ Stokta</small>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-danger fw-semibold" style="font-size: 0.7rem;">✗ Tükendi</small>
+                                        }
                                     </div>
                                     
-                                    <form action="/Cart/AddToCart" method="post" class="m-0 w-100">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="productId" value="@product.Id" />
-                                        <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold rounded-3 shadow-sm">
-                                            Sepete Ekle
+                                    @if (product.Stock > 0)
+                                    {
+                                        <form action="/Cart/AddToCart" method="post" class="m-0 w-100">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="productId" value="@product.Id" />
+                                            <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold rounded-3 shadow-sm">
+                                                Sepete Ekle
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary text-secondary w-100 py-2 fw-semibold rounded-3 shadow-sm" disabled>
+                                            Stokta Yok
                                         </button>
-                                    </form>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -169,3 +211,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var scrollpos = localStorage.getItem('gymboom_scrollpos');
+        if (scrollpos) {
+            window.scrollTo({ top: parseInt(scrollpos), behavior: 'instant' });
+            localStorage.removeItem('gymboom_scrollpos'); 
+        }
+    });
+
+    window.addEventListener("beforeunload", function() {
+        localStorage.setItem('gymboom_scrollpos', window.scrollY);
+    });
+</script>

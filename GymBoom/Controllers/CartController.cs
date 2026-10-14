@@ -1,51 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
-using GymBoom.Models;
-using GymBoom.Models.ViewModels.Cart;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using System.Text.Json;
-using GymBoom.Data.Repositories;
+using GymBoom.Services.Interfaces;
 
 namespace GymBoom.Controllers;
 
 public class CartController : Controller
 {
-    private readonly IRepository<Product> _productRepository;
-    private readonly IRepository<Order> _orderRepository;
+    private readonly ICartService _cartService;
 
-    public CartController(IRepository<Product> productRepository, IRepository<Order> orderRepository)
+    public CartController(ICartService cartService)
     {
-        _productRepository = productRepository;
-        _orderRepository = orderRepository;
-    }
-
-    private List<CartItem> GetCartItems()
-    {
-        var cartJson = HttpContext.Session.GetString("Cart");
-        if (string.IsNullOrEmpty(cartJson)) return new List<CartItem>();
-        return JsonSerializer.Deserialize<List<CartItem>>(cartJson) ?? new List<CartItem>();
-    }
-
-    private void SaveCartItems(List<CartItem> cart)
-    {
-        var cartJson = JsonSerializer.Serialize(cart);
-        HttpContext.Session.SetString("Cart", cartJson);
+        _cartService = cartService;
     }
 
     [HttpGet]
     public IActionResult Index()
     {
-        var cart = GetCartItems();
-        var model = new CartViewModel
-        {
-            Items = cart.Select(c => new CartItemViewModel 
-            {
-                ProductId = c.ProductId,
-                ProductName = c.ProductName,
-                Price = c.Price,
-                Quantity = c.Quantity
-            }).ToList()
-        };
+        var model = _cartService.GetCartViewModel();
         return View(model);
     }
 
@@ -53,41 +25,11 @@ public class CartController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddToCart(int productId)
     {
-        var product = await _productRepository.GetByIdAsync(productId);
-        if (product == null) return NotFound();
+        var result = await _cartService.AddToCartAsync(productId);
+        
+        if (result.IsSuccess) TempData["SuccessMessage"] = result.Message;
+        else TempData["ErrorMessage"] = result.Message;
 
-        var cart = GetCartItems();
-        var existingItem = cart.FirstOrDefault(c => c.ProductId == productId);
-
-        // STOK KONTROLÜ
-        if (existingItem != null)
-        {
-            if (existingItem.Quantity + 1 <= product.Stock)
-            {
-                existingItem.Quantity++;
-                TempData["SuccessMessage"] = $"{product.Name} sepetinizde güncellendi!";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = $"Maalesef stokta sadece {product.Stock} adet {product.Name} bulunuyor.";
-                return RedirectToAction("Index", "Store");
-            }
-        }
-        else
-        {
-            if (product.Stock > 0)
-            {
-                cart.Add(new CartItem { ProductId = product.Id, ProductName = product.Name, Price = product.Price, Quantity = 1 });
-                TempData["SuccessMessage"] = $"{product.Name} sepete eklendi!";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = $"{product.Name} ürününün stoğu tükenmiştir.";
-                return RedirectToAction("Index", "Store");
-            }
-        }
-
-        SaveCartItems(cart);
         return RedirectToAction("Index", "Store");
     }
 
@@ -95,25 +37,10 @@ public class CartController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> IncreaseQuantity(int productId)
     {
-        var product = await _productRepository.GetByIdAsync(productId);
-        if (product == null) return NotFound();
-
-        var cart = GetCartItems();
-        var item = cart.FirstOrDefault(c => c.ProductId == productId);
-
-        if (item != null)
-        {
-            // STOK KONTROLÜ
-            if (item.Quantity + 1 <= product.Stock)
-            {
-                item.Quantity++;
-                SaveCartItems(cart);
-            }
-            else
-            {
-                TempData["ErrorMessage"] = $"Maksimum stok sınırına ulaştınız! (Stokta kalan: {product.Stock} adet)";
-            }
-        }
+        var result = await _cartService.IncreaseQuantityAsync(productId);
+        
+        if (!result.IsSuccess) TempData["ErrorMessage"] = result.Message;
+            
         return RedirectToAction("Index");
     }
 
@@ -121,21 +48,7 @@ public class CartController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult DecreaseQuantity(int productId)
     {
-        var cart = GetCartItems();
-        var item = cart.FirstOrDefault(c => c.ProductId == productId);
-
-        if (item != null)
-        {
-            if (item.Quantity > 1)
-            {
-                item.Quantity--;
-            }
-            else
-            {
-                cart.Remove(item);
-            }
-            SaveCartItems(cart);
-        }
+        _cartService.DecreaseQuantity(productId);
         return RedirectToAction("Index");
     }
 
@@ -143,14 +56,7 @@ public class CartController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult RemoveItem(int productId)
     {
-        var cart = GetCartItems();
-        var itemToRemove = cart.FirstOrDefault(c => c.ProductId == productId);
-
-        if (itemToRemove != null)
-        {
-            cart.Remove(itemToRemove);
-            SaveCartItems(cart);
-        }
+        _cartService.RemoveItem(productId);
         return RedirectToAction("Index");
     }
 
@@ -158,7 +64,7 @@ public class CartController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Clear()
     {
-        HttpContext.Session.Remove("Cart");
+        _cartService.ClearCart();
         return RedirectToAction("Index");
     }
 
@@ -166,7 +72,7 @@ public class CartController : Controller
     [Authorize]
     public IActionResult Checkout()
     {
-        var cart = GetCartItems();
+        var cart = _cartService.GetCartItems();
         if (!cart.Any())
         {
             TempData["ErrorMessage"] = "Sepetiniz boş, ödeme yapamazsınız.";
@@ -180,47 +86,18 @@ public class CartController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> PlaceOrder(string address, string city)
     {
-        var cart = GetCartItems();
-        if (!cart.Any()) return RedirectToAction("Index", "Store");
-
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdString, out int userId)) return RedirectToAction("Login", "Account");
 
-        var order = new Order
-        {
-            UserId = userId,
-            OrderNumber = "ORD-" + DateTime.Now.ToString("yyyyMMddHHmmss"),
-            TotalAmount = cart.Sum(c => c.Price * c.Quantity),
-            Address = address,
-            City = city,
-            Status = "Onaylandı",
-            CreatedDate = DateTime.UtcNow,
-            OrderItems = cart.Select(item => new OrderItem
-            {
-                ProductId = item.ProductId,
-                Quantity = item.Quantity,
-                UnitPrice = item.Price
-            }).ToList()
-        };
+        var result = await _cartService.PlaceOrderAsync(address, city, userId);
 
-        await _orderRepository.AddAsync(order);
-
-        foreach (var item in cart)
+        if (!result.IsSuccess)
         {
-            var product = await _productRepository.GetByIdAsync(item.ProductId);
-            if (product != null)
-            {
-                product.Stock -= item.Quantity;
-                if(product.Stock < 0) product.Stock = 0;
-                _productRepository.Update(product);
-            }
+            TempData["ErrorMessage"] = result.Message;
+            return RedirectToAction("Index");
         }
 
-        await _orderRepository.SaveAsync();
-        await _productRepository.SaveAsync();
-
-        HttpContext.Session.Remove("Cart");
-        TempData["SuccessMessage"] = $"Siparişiniz başarıyla alındı! Takip Numaranız: {order.OrderNumber}";
+        TempData["SuccessMessage"] = $"Siparişiniz başarıyla alındı! Takip Numaranız: {result.OrderNumber}";
         return RedirectToAction("Profile", "Account");
     }
 }
