@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using GymBoom.Data;
 using GymBoom.Data.Repositories;
 using GymBoom.Extensions;
+using GymBoom.Services.Interfaces;
+using GymBoom.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +38,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 

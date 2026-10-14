@@ -32,6 +32,7 @@
     <Folder Include="Models\ViewModels\Account\" />
     <Folder Include="Models\ViewModels\Cart\" />
     <Folder Include="Services\" />
+    <Folder Include="Services\Implementations\" />
     <Folder Include="Services\Interfaces\" />
     <Folder Include="StoreImages\" />
   </ItemGroup>
