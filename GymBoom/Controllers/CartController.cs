@@ -59,15 +59,84 @@ public class CartController : Controller
         var cart = GetCartItems();
         var existingItem = cart.FirstOrDefault(c => c.ProductId == productId);
 
-        if (existingItem != null) existingItem.Quantity++;
+        // STOK KONTROLÜ
+        if (existingItem != null)
+        {
+            if (existingItem.Quantity + 1 <= product.Stock)
+            {
+                existingItem.Quantity++;
+                TempData["SuccessMessage"] = $"{product.Name} sepetinizde güncellendi!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"Maalesef stokta sadece {product.Stock} adet {product.Name} bulunuyor.";
+                return RedirectToAction("Index", "Store");
+            }
+        }
         else
         {
-            cart.Add(new CartItem { ProductId = product.Id, ProductName = product.Name, Price = product.Price, Quantity = 1 });
+            if (product.Stock > 0)
+            {
+                cart.Add(new CartItem { ProductId = product.Id, ProductName = product.Name, Price = product.Price, Quantity = 1 });
+                TempData["SuccessMessage"] = $"{product.Name} sepete eklendi!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"{product.Name} ürününün stoğu tükenmiştir.";
+                return RedirectToAction("Index", "Store");
+            }
         }
 
         SaveCartItems(cart);
-        TempData["SuccessMessage"] = $"{product.Name} sepete eklendi!";
         return RedirectToAction("Index", "Store");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> IncreaseQuantity(int productId)
+    {
+        var product = await _productRepository.GetByIdAsync(productId);
+        if (product == null) return NotFound();
+
+        var cart = GetCartItems();
+        var item = cart.FirstOrDefault(c => c.ProductId == productId);
+
+        if (item != null)
+        {
+            // STOK KONTROLÜ
+            if (item.Quantity + 1 <= product.Stock)
+            {
+                item.Quantity++;
+                SaveCartItems(cart);
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"Maksimum stok sınırına ulaştınız! (Stokta kalan: {product.Stock} adet)";
+            }
+        }
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult DecreaseQuantity(int productId)
+    {
+        var cart = GetCartItems();
+        var item = cart.FirstOrDefault(c => c.ProductId == productId);
+
+        if (item != null)
+        {
+            if (item.Quantity > 1)
+            {
+                item.Quantity--;
+            }
+            else
+            {
+                cart.Remove(item);
+            }
+            SaveCartItems(cart);
+        }
+        return RedirectToAction("Index");
     }
 
     [HttpPost]
@@ -142,9 +211,7 @@ public class CartController : Controller
             if (product != null)
             {
                 product.Stock -= item.Quantity;
-                
                 if(product.Stock < 0) product.Stock = 0;
-                
                 _productRepository.Update(product);
             }
         }

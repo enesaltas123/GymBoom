@@ -16,29 +16,49 @@ public class StoreController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(int? categoryId)
+    public async Task<IActionResult> Index(int? categoryId, string? searchString, decimal? minPrice, decimal? maxPrice, string? sortOrder)
     {
         var allCategories = await _categoryRepository.GetAllAsync();
-        
         var activeCategories = allCategories.Where(c => c.IsActive == true).ToList();
         ViewBag.Categories = activeCategories;
 
         var products = await _productRepository.GetAllAsync();
-
         var activeCategoryIds = activeCategories.Select(c => c.Id).ToList();
-        var visibleProducts = products.Where(p => activeCategoryIds.Contains(p.CategoryId)).ToList();
+        
+        var query = products.Where(p => activeCategoryIds.Contains(p.CategoryId)).AsEnumerable();
 
-        if (categoryId.HasValue)
+        if (categoryId.HasValue && categoryId.Value > 0)
         {
-            visibleProducts = visibleProducts.Where(p => p.CategoryId == categoryId.Value).ToList();
-            ViewBag.CurrentCategory = categoryId.Value;
-        }
-        else
-        {
-            ViewBag.CurrentCategory = null;
+            query = query.Where(p => p.CategoryId == categoryId.Value);
         }
 
-        return View(visibleProducts);
+        if (!string.IsNullOrEmpty(searchString))
+        {
+            query = query.Where(p => 
+                p.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase) || 
+                (p.Description != null && p.Description.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            );
+        }
+
+        if (minPrice.HasValue) query = query.Where(p => p.Price >= minPrice.Value);
+        if (maxPrice.HasValue) query = query.Where(p => p.Price <= maxPrice.Value);
+
+        query = sortOrder switch
+        {
+            "price_asc" => query.OrderBy(p => p.Price),
+            "price_desc" => query.OrderByDescending(p => p.Price),
+            "name_asc" => query.OrderBy(p => p.Name),
+            "name_desc" => query.OrderByDescending(p => p.Name),
+            _ => query.OrderByDescending(p => p.Id) // Varsayılan: En yeniler
+        };
+
+        ViewBag.CurrentCategory = categoryId;
+        ViewBag.CurrentSearch = searchString;
+        ViewBag.CurrentMinPrice = minPrice;
+        ViewBag.CurrentMaxPrice = maxPrice;
+        ViewBag.CurrentSort = sortOrder;
+
+        return View(query.ToList());
     }
 
     public async Task<IActionResult> Details(int id)

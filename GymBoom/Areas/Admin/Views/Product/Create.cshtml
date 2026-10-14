@@ -11,7 +11,7 @@
                     <h4 class="text-light mt-2">➕ Yeni Ürün Ekle</h4>
                 </div>
                 <div class="card-body gym-card-inner">
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label asp-for="Name" class="form-label text-light fw-semibold">Ürün Adı</label>
                             <input asp-for="Name" class="form-control bg-dark text-light border-secondary" placeholder="Örn: 5kg Dambıl" required />
@@ -44,9 +44,9 @@
                         </div>
 
                         <div class="mb-4">
-                            <label asp-for="ImageUrl" class="form-label text-light fw-semibold">Görsel Linki (URL)</label>
-                            <input asp-for="ImageUrl" class="form-control bg-dark text-light border-secondary" placeholder="https://..." />
-                            <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                            <label class="form-label text-light fw-semibold">Ürün Görseli Yükle</label>
+                            <input type="file" name="imageFile" class="form-control bg-dark text-light border-secondary" accept="image/*" />
+                            <small class="text-secondary d-block mt-1">Sadece resim dosyaları (.jpg, .png, .jpeg) yükleyebilirsiniz.</small>
                         </div>
 
                         <div class="d-flex justify-content-between">
