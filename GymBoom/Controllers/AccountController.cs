@@ -2,6 +2,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization; 
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using System.Net.Mail;
 using Microsoft.EntityFrameworkCore;
 using GymBoom.Models;
 using GymBoom.Models.ViewModels.Account;
@@ -79,7 +81,8 @@ public class AccountController : Controller
         return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
-[HttpPost]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
@@ -125,6 +128,66 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        if (User.Identity != null && User.Identity.IsAuthenticated) return RedirectToAction("Index", "Home");
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var user = await _userRepository.Query()
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == model.Email.ToLower());
+
+        if (user == null)
+        {
+            TempData["SuccessMessage"] = "Eğer sistemimizde kayıtlı bir e-posta adresi girdiyseniz, yeni şifreniz e-posta adresinize gönderilmiştir.";
+            return RedirectToAction("Login");
+        }
+
+        string tempPassword = Guid.NewGuid().ToString().Substring(0, 8);
+        
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+        _userRepository.Update(user);
+        await _userRepository.SaveAsync();
+
+        try
+        {
+            var smtpClient = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential("enesson3113@gmail.com", "mzew fulr jewa rurq"),
+                EnableSsl = true,
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress("enesson3113@gmail.com", "GymBoom Destek"),
+                Subject = "GymBoom - Yeni Geçici Şifreniz",
+                Body = $"Merhaba {user.FullName},\n\nHesabınız için şifre sıfırlama talebi aldık.\n\nYeni geçici şifreniz: {tempPassword}\n\nLütfen bu şifre ile sisteme giriş yapın.\n\nGymBoom Ekibi",
+                IsBodyHtml = false,
+            };
+
+            mailMessage.To.Add(user.Email);
+            smtpClient.Send(mailMessage);
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "E-posta gönderilirken bir hata oluştu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.");
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = "Yeni şifreniz e-posta adresinize başarıyla gönderildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol edin.";
+        return RedirectToAction("Login");
+    }
+
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
@@ -160,5 +223,39 @@ public class AccountController : Controller
         };
 
         return View(model);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public IActionResult ChangePassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdString, out int userId)) return RedirectToAction("Login");
+
+        var user = await _userRepository.Query().FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) return RedirectToAction("Login");
+
+        if (!BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.PasswordHash))
+        {
+            ModelState.AddModelError("CurrentPassword", "Mevcut şifreniz hatalı. Lütfen kontrol edip tekrar deneyin.");
+            return View(model);
+        }
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+        _userRepository.Update(user);
+        await _userRepository.SaveAsync();
+
+        TempData["SuccessMessage"] = "Şifreniz başarıyla güncellendi.";
+        return RedirectToAction("Profile");
     }
 }

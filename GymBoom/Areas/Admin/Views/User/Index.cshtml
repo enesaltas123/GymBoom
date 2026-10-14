@@ -8,7 +8,6 @@
         <h2 class="text-light">👥 Üye Yönetimi</h2>
     </div>
 
-    <!-- Hata Mesajı Alanı (Yeni Eklendi) -->
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -17,7 +16,6 @@
         </div>
     }
 
-    <!-- Başarı Mesajı Alanı -->
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
