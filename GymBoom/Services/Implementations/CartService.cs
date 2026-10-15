@@ -1,25 +1,23 @@
 using GymBoom.Models;
 using GymBoom.Models.ViewModels.Cart;
-using GymBoom.Data.Repositories;
 using GymBoom.Services.Interfaces;
 using System.Text.Json;
+using System.Text;
 
 namespace GymBoom.Services.Implementations;
 
 public class CartService : ICartService
 {
-    private readonly IRepository<Product> _productRepository;
-    private readonly IRepository<Order> _orderRepository;
+    private readonly HttpClient _httpClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly JsonSerializerOptions _jsonOptions;
 
-    public CartService(
-        IRepository<Product> productRepository, 
-        IRepository<Order> orderRepository,
-        IHttpContextAccessor httpContextAccessor)
+    public CartService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
     {
-        _productRepository = productRepository;
-        _orderRepository = orderRepository;
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("http://localhost:5283/");
         _httpContextAccessor = httpContextAccessor;
+        _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
     }
 
     private ISession Session => _httpContextAccessor.HttpContext!.Session;
@@ -54,7 +52,10 @@ public class CartService : ICartService
 
     public async Task<(bool IsSuccess, string Message)> AddToCartAsync(int productId)
     {
-        var product = await _productRepository.GetByIdAsync(productId);
+        var response = await _httpClient.GetAsync($"api/products/{productId}");
+        if (!response.IsSuccessStatusCode) return (false, "Ürün bulunamadı.");
+        
+        var product = JsonSerializer.Deserialize<Product>(await response.Content.ReadAsStringAsync(), _jsonOptions);
         if (product == null) return (false, "Ürün bulunamadı.");
 
         var cart = GetCartItems();
@@ -84,7 +85,10 @@ public class CartService : ICartService
 
     public async Task<(bool IsSuccess, string Message)> IncreaseQuantityAsync(int productId)
     {
-        var product = await _productRepository.GetByIdAsync(productId);
+        var response = await _httpClient.GetAsync($"api/products/{productId}");
+        if (!response.IsSuccessStatusCode) return (false, "Ürün bulunamadı.");
+        
+        var product = JsonSerializer.Deserialize<Product>(await response.Content.ReadAsStringAsync(), _jsonOptions);
         if (product == null) return (false, "Ürün bulunamadı.");
 
         var cart = GetCartItems();
@@ -141,7 +145,10 @@ public class CartService : ICartService
 
         foreach (var item in cart)
         {
-            var product = await _productRepository.GetByIdAsync(item.ProductId);
+            var response = await _httpClient.GetAsync($"api/products/{item.ProductId}");
+            if (!response.IsSuccessStatusCode) return (false, "Ürünlerden biri bulunamadı.", "");
+            
+            var product = JsonSerializer.Deserialize<Product>(await response.Content.ReadAsStringAsync(), _jsonOptions);
             if (product == null || product.Stock < item.Quantity)
             {
                 int currentStock = product?.Stock ?? 0;
@@ -166,20 +173,28 @@ public class CartService : ICartService
             }).ToList()
         };
 
-        await _orderRepository.AddAsync(order);
+        var orderJsonContent = new StringContent(JsonSerializer.Serialize(order), Encoding.UTF8, "application/json");
+        var orderResponse = await _httpClient.PostAsync("api/orders", orderJsonContent);
+
+        if (!orderResponse.IsSuccessStatusCode)
+        {
+            return (false, "Sipariş oluşturulurken sunucu tarafında bir hata meydana geldi.", "");
+        }
 
         foreach (var item in cart)
         {
-            var product = await _productRepository.GetByIdAsync(item.ProductId);
-            if (product != null)
+            var prodResponse = await _httpClient.GetAsync($"api/products/{item.ProductId}");
+            if (prodResponse.IsSuccessStatusCode)
             {
-                product.Stock -= item.Quantity;
-                _productRepository.Update(product);
+                var product = JsonSerializer.Deserialize<Product>(await prodResponse.Content.ReadAsStringAsync(), _jsonOptions);
+                if (product != null)
+                {
+                    product.Stock -= item.Quantity;
+                    var updateJson = new StringContent(JsonSerializer.Serialize(product), Encoding.UTF8, "application/json");
+                    await _httpClient.PutAsync($"api/products/{product.Id}", updateJson);
+                }
             }
         }
-
-        await _orderRepository.SaveAsync();
-        await _productRepository.SaveAsync();
 
         ClearCart();
         return (true, "Sipariş başarıyla alındı!", order.OrderNumber);

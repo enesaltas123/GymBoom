@@ -1,8 +1,8 @@
+using System.Text.Json;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using GymBoom.Models;
-using GymBoom.Data.Repositories;
 
 namespace GymBoom.Areas.Admin.Controllers;
 
@@ -10,46 +10,54 @@ namespace GymBoom.Areas.Admin.Controllers;
 [Authorize(Roles = "Admin")]
 public class OrderController : Controller
 {
-    private readonly IRepository<Order> _orderRepository;
+    private readonly HttpClient _httpClient;
 
-    public OrderController(IRepository<Order> orderRepository)
+    public OrderController(HttpClient httpClient)
     {
-        _orderRepository = orderRepository;
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("http://localhost:5283/");
     }
 
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var orders = await _orderRepository.Query()
-            .Include(o => o.User)
-            .OrderByDescending(o => o.CreatedDate)
-            .ToListAsync();
-            
-        return View(orders);
+        var response = await _httpClient.GetAsync("api/orders");
+        if (response.IsSuccessStatusCode)
+        {
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var orders = JsonSerializer.Deserialize<List<Order>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return View(orders);
+        }
+        return View(new List<Order>());
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStatus(int id, string newStatus)
     {
-        var order = await _orderRepository.GetByIdAsync(id);
-        if (order != null)
+        var jsonContent = new StringContent(JsonSerializer.Serialize(newStatus), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PatchAsync($"api/orders/{id}/status", jsonContent);
+
+        if (response.IsSuccessStatusCode)
         {
-            order.Status = newStatus;
-            _orderRepository.Update(order);
-            await _orderRepository.SaveAsync();
-            TempData["SuccessMessage"] = $"{order.OrderNumber} numaralı sipariş durumu '{newStatus}' olarak güncellendi!";
+            TempData["SuccessMessage"] = "Sipariş durumu başarıyla güncellendi!";
         }
+        else
+        {
+            TempData["ErrorMessage"] = "Sipariş durumu güncellenirken API'de bir hata oluştu.";
+        }
+
         return RedirectToAction(nameof(Index));
     }
+
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
-        var order = await _orderRepository.Query()
-            .Include(o => o.User)
-            .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-            .FirstOrDefaultAsync(o => o.Id == id);
+        var response = await _httpClient.GetAsync($"api/orders/{id}");
+        if (!response.IsSuccessStatusCode) return NotFound();
+
+        var jsonString = await response.Content.ReadAsStringAsync();
+        var order = JsonSerializer.Deserialize<Order>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         if (order == null) return NotFound();
 
