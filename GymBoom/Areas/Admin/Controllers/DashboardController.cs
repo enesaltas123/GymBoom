@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using GymBoom.Models;
-using GymBoom.Data.Repositories;
 
 namespace GymBoom.Areas.Admin.Controllers;
 
@@ -10,21 +7,32 @@ namespace GymBoom.Areas.Admin.Controllers;
 [Authorize(Roles = "Admin")]
 public class DashboardController : Controller
 {
-    private readonly IRepository<User> _userRepository;
-    private readonly IRepository<Order> _orderRepository;
+    private readonly HttpClient _httpClient;
 
-    public DashboardController(IRepository<User> userRepository, IRepository<Order> orderRepository)
+    public DashboardController(HttpClient httpClient)
     {
-        _userRepository = userRepository;
-        _orderRepository = orderRepository;
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("http://localhost:5283/");
     }
 
     public async Task<IActionResult> Index()
     {
-        var activeUserCount = await _userRepository.Query()
-        .CountAsync(u => u.MembershipEndDate.HasValue && u.MembershipEndDate > DateTime.UtcNow);
-        
-        var pendingOrderCount = await _orderRepository.Query().CountAsync();
+        int activeUserCount = 0;
+        int pendingOrderCount = 0;
+
+        var userResponse = await _httpClient.GetAsync("api/users/active-count");
+        if (userResponse.IsSuccessStatusCode)
+        {
+            var userResult = await userResponse.Content.ReadAsStringAsync();
+            int.TryParse(userResult, out activeUserCount);
+        }
+
+        var orderResponse = await _httpClient.GetAsync("api/orders/count");
+        if (orderResponse.IsSuccessStatusCode)
+        {
+            var orderResult = await orderResponse.Content.ReadAsStringAsync();
+            int.TryParse(orderResult, out pendingOrderCount);
+        }
 
         ViewBag.ActiveUserCount = activeUserCount;
         ViewBag.PendingOrderCount = pendingOrderCount;

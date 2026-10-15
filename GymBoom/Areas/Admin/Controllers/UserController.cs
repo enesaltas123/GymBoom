@@ -1,8 +1,7 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using GymBoom.Models;
-using GymBoom.Data.Repositories;
 
 namespace GymBoom.Areas.Admin.Controllers;
 
@@ -10,42 +9,54 @@ namespace GymBoom.Areas.Admin.Controllers;
 [Authorize(Roles = "Admin")]
 public class UserController : Controller
 {
-    private readonly IRepository<User> _userRepository;
+    private readonly HttpClient _httpClient;
 
-    public UserController(IRepository<User> userRepository)
+    public UserController(HttpClient httpClient)
     {
-        _userRepository = userRepository;
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("http://localhost:5283/");
     }
 
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var users = await _userRepository.Query()
-            .Include(u => u.ActiveGymPlan)
-            .OrderByDescending(u => u.CreatedDate)
-            .ToListAsync();
-            
-        return View(users);
+        var response = await _httpClient.GetAsync("api/users");
+        if (response.IsSuccessStatusCode)
+        {
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var users = JsonSerializer.Deserialize<List<User>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return View(users);
+        }
+        return View(new List<User>());
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleStatus(int id)
     {
-        var user = await _userRepository.GetByIdAsync(id);
-        if (user != null)
+        var response = await _httpClient.PatchAsync($"api/users/{id}/toggle-status", null);
+
+        if (response.IsSuccessStatusCode)
         {
-            if (user.Role == "Admin")
-            {
-                TempData["ErrorMessage"] = "Sistem yöneticisi hesabı pasife alınamaz!";
-                return RedirectToAction(nameof(Index));
-            }
-            user.IsActive = !user.IsActive;
-            _userRepository.Update(user);
-            await _userRepository.SaveAsync();
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<JsonElement>(jsonString);
             
-            var statusText = user.IsActive ? "aktifleştirildi" : "pasife alındı";
-            TempData["SuccessMessage"] = $"{user.FullName} adlı kullanıcının hesabı {statusText}.";
+            bool isActive = result.GetProperty("isActive").GetBoolean();
+            string fullName = result.GetProperty("fullName").GetString() ?? "Kullanıcı";
+
+            var statusText = isActive ? "aktifleştirildi" : "pasife alındı";
+            TempData["SuccessMessage"] = $"{fullName} adlı kullanıcının hesabı {statusText}.";
+        }
+        else
+        {
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                TempData["ErrorMessage"] = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "İşlem sırasında sunucu tarafında bir hata oluştu.";
+            }
         }
         return RedirectToAction(nameof(Index));
     }

@@ -28,16 +28,17 @@ public class OrdersController : ControllerBase
             
         foreach (var order in orders)
         {
-            if (order.OrderItems != null)
-            {
-                foreach (var item in order.OrderItems)
-                {
-                    item.Order = null;
-                }
-            }
+            CleanOrderRelations(order);
         }
 
         return Ok(orders);
+    }
+
+    [HttpGet("count")]
+    public async Task<IActionResult> GetTotalCount()
+    {
+        var count = await _orderRepository.Query().CountAsync();
+        return Ok(count);
     }
 
     [HttpGet("{id}")]
@@ -51,15 +52,27 @@ public class OrdersController : ControllerBase
 
         if (order == null) return NotFound();
 
-        if (order.OrderItems != null)
-        {
-            foreach (var item in order.OrderItems)
-            {
-                item.Order = null;
-            }
-        }
+        CleanOrderRelations(order);
 
         return Ok(order);
+    }
+
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetByUserId(int userId)
+    {
+        var orders = await _orderRepository.Query()
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedDate)
+            .ToListAsync();
+
+        foreach (var order in orders)
+        {
+            CleanOrderRelations(order);
+        }
+
+        return Ok(orders);
     }
 
     [HttpPost]
@@ -100,5 +113,22 @@ public class OrdersController : ControllerBase
         await _orderRepository.SaveAsync();
         
         return NoContent();
+    }
+
+    private void CleanOrderRelations(Order order)
+    {
+        if (order.User != null)
+        {
+            order.User.Orders = null; 
+            order.User.ActiveGymPlan = null;
+        }
+
+        if (order.OrderItems != null)
+        {
+            foreach (var item in order.OrderItems)
+            {
+                item.Order = null;
+            }
+        }
     }
 }
