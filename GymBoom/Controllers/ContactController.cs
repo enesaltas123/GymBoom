@@ -1,54 +1,42 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
-using System.Net.Mail;
+using System.Text.Json;
+using System.Text;
 using GymBoom.Models;
 
-namespace GymBoom.Controllers
+namespace GymBoom.Controllers;
+
+public class ContactController : Controller
 {
-    public class ContactController : Controller
+    private readonly HttpClient _httpClient;
+
+    public ContactController(HttpClient httpClient)
     {
-        [HttpGet]
-        public IActionResult Index()
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("http://localhost:5283/");
+    }
+
+    [HttpGet]
+    public IActionResult Index()
+    {
+        return View(new ContactViewModel());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Index(ContactViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var jsonContent = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync("api/contact", jsonContent);
+
+        if (response.IsSuccessStatusCode)
         {
-            return View();
+            ViewBag.Message = "Mesajınız başarıyla gönderildi! En kısa sürede dönüş yapacağız.";
+            ModelState.Clear();
+            return View(new ContactViewModel());
         }
-
-        [HttpPost]
-        public IActionResult Index(ContactViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    var smtpClient = new SmtpClient("smtp.gmail.com")
-                    {
-                        Port = 587,
-                        Credentials = new NetworkCredential("enesson3113@gmail.com", "mzew fulr jewa rurq"),
-                        EnableSsl = true,
-                    };
-
-                    var mailMessage = new MailMessage
-                    {
-                        From = new MailAddress("enesson3113@gmail.com"),
-                        Subject = $"GymBoom İletişim Formu: {model.Name}",
-                        Body = $"Gönderen: {model.Name}\nE-Posta: {model.Email}\n\nMesaj:\n{model.Message}",
-                        IsBodyHtml = false,
-                    };
-
-                    mailMessage.To.Add("enesson3113@gmail.com"); 
-
-                    smtpClient.Send(mailMessage);
-                    ViewBag.Message = "Mesajınız başarıyla gönderildi!";
-                    ModelState.Clear();
-                    return View(new ContactViewModel());
-                }
-                catch
-                {
-                    ViewBag.Error = "Mesaj gönderilirken bir hata oluştu.";
-                }
-            }
-            return View(model);
-        }
-
+        
+        ViewBag.Error = "Mesajınız API servisine iletilemedi. Lütfen daha sonra tekrar deneyin.";
+        return View(model);
     }
 }

@@ -1,39 +1,43 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using GymBoom.Models;
-using GymBoom.Data.Repositories;
 
 namespace GymBoom.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly IRepository<GymPlan> _gymPlanRepository;
-    private readonly IRepository<Product> _productRepository;
+    private readonly HttpClient _httpClient;
 
-    public HomeController(IRepository<GymPlan> gymPlanRepository, IRepository<Product> productRepository)
+    public HomeController(HttpClient httpClient)
     {
-        _gymPlanRepository = gymPlanRepository;
-        _productRepository = productRepository;
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("http://localhost:5283/"); // API adresimiz
     }
 
     public async Task<IActionResult> Index()
     {
         var model = new HomeIndexViewModel
         {
-            Plans = await _gymPlanRepository.Query()
-                .Where(p => p.IsActive)
-                .OrderByDescending(p => p.DurationInMonths)
-                .Take(2)
-                .ToListAsync(),
-
-            Products = await _productRepository.Query()
-                .Include(p => p.Category)
-                .Where(p => p.IsActive)
-                .OrderByDescending(p => p.Id)
-                .Take(3)
-                .ToListAsync()
+            Plans = new List<GymPlan>(),
+            Products = new List<Product>()
         };
+
+        var plansResponse = await _httpClient.GetAsync("api/gymplans");
+        if (plansResponse.IsSuccessStatusCode)
+        {
+            var plansJson = await plansResponse.Content.ReadAsStringAsync();
+            var allPlans = JsonSerializer.Deserialize<List<GymPlan>>(plansJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<GymPlan>();
+            model.Plans = allPlans.Where(p => p.IsActive).OrderByDescending(p => p.DurationInMonths).Take(2).ToList();
+        }
+
+        var productsResponse = await _httpClient.GetAsync("api/products");
+        if (productsResponse.IsSuccessStatusCode)
+        {
+            var productsJson = await productsResponse.Content.ReadAsStringAsync();
+            var allProducts = JsonSerializer.Deserialize<List<Product>>(productsJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<Product>();
+            model.Products = allProducts.Where(p => p.IsActive).OrderByDescending(p => p.Id).Take(3).ToList();
+        }
 
         return View(model);
     }

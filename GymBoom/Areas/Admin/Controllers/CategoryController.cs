@@ -8,7 +8,6 @@ namespace GymBoom.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
-
 public class CategoryController : Controller
 {
     private readonly HttpClient _httpClient;
@@ -16,7 +15,7 @@ public class CategoryController : Controller
     public CategoryController(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _httpClient.BaseAddress = new Uri("http://localhost:5286/"); 
+        _httpClient.BaseAddress = new Uri("http://localhost:5283/"); 
     }
 
     [HttpGet]

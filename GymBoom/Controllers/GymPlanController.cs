@@ -3,21 +3,24 @@ using GymBoom.Models;
 using GymBoom.Data.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace GymBoom.Controllers;
 
 public class GymPlanController : Controller
 {
-    private readonly IRepository<GymPlan> _gymPlanRepository;
+    private readonly HttpClient _httpClient;
     private readonly IRepository<User> _userRepository;
     private readonly IRepository<UserSubscription> _subscriptionRepository;
 
     public GymPlanController(
-        IRepository<GymPlan> gymPlanRepository, 
+        HttpClient httpClient, 
         IRepository<User> userRepository,
         IRepository<UserSubscription> subscriptionRepository)
     {
-        _gymPlanRepository = gymPlanRepository;
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("http://localhost:5283/");
+        
         _userRepository = userRepository;
         _subscriptionRepository = subscriptionRepository;
     }
@@ -25,20 +28,29 @@ public class GymPlanController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var plans = await _gymPlanRepository.GetAllAsync();
-        return View(plans.OrderBy(p => p.Price));
+        var response = await _httpClient.GetAsync("api/gymplans");
+        if (response.IsSuccessStatusCode)
+        {
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var plans = JsonSerializer.Deserialize<List<GymPlan>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return View(plans.OrderBy(p => p.Price));
+        }
+        return View(new List<GymPlan>());
     }
 
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> Checkout(int planId)
     {
-        var selectedPlan = await _gymPlanRepository.GetByIdAsync(planId);
-        if (selectedPlan == null)
+        var response = await _httpClient.GetAsync($"api/gymplans/{planId}");
+        if (!response.IsSuccessStatusCode)
         {
             return NotFound("Seçtiğiniz plan bulunamadı.");
         }
-
+        
+        var jsonString = await response.Content.ReadAsStringAsync();
+        var selectedPlan = JsonSerializer.Deserialize<GymPlan>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        
         return View(selectedPlan);
     }
 
@@ -50,8 +62,11 @@ public class GymPlanController : Controller
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdString, out int userId)) return RedirectToAction("Login", "Account");
 
-        var selectedPlan = await _gymPlanRepository.GetByIdAsync(planId);
-        if (selectedPlan == null) return NotFound("Seçilen plan bulunamadı.");
+        var response = await _httpClient.GetAsync($"api/gymplans/{planId}");
+        if (!response.IsSuccessStatusCode) return NotFound("Seçilen plan bulunamadı.");
+        
+        var jsonString = await response.Content.ReadAsStringAsync();
+        var selectedPlan = JsonSerializer.Deserialize<GymPlan>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null) return NotFound("Kullanıcı bulunamadı.");
@@ -73,7 +88,6 @@ public class GymPlanController : Controller
             IsActive = true
         };
         await _subscriptionRepository.AddAsync(newSubscription);
-
         await _userRepository.SaveAsync(); 
 
         TempData["SuccessMessage"] = $"{selectedPlan.Title} paketini başarıyla satın aldınız!";

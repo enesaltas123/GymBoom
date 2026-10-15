@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using GymBoom.Models;
 using GymBoom.Data.Repositories;
 
-namespace GymBoom.Controllers.Api;
+namespace GymBoom.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -32,7 +32,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(Category category)
+    public async Task<IActionResult> Create([FromBody] Category category)
     {
         await _categoryRepository.AddAsync(category);
         await _categoryRepository.SaveAsync();

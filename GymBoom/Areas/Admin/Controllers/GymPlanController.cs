@@ -1,7 +1,8 @@
+using System.Text.Json;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using GymBoom.Models;
-using GymBoom.Data.Repositories;
 
 namespace GymBoom.Areas.Admin.Controllers;
 
@@ -9,18 +10,25 @@ namespace GymBoom.Areas.Admin.Controllers;
 [Authorize(Roles = "Admin")]
 public class GymPlanController : Controller
 {
-    private readonly IRepository<GymPlan> _planRepository;
+    private readonly HttpClient _httpClient;
 
-    public GymPlanController(IRepository<GymPlan> planRepository)
+    public GymPlanController(HttpClient httpClient)
     {
-        _planRepository = planRepository;
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri("http://localhost:5283/");
     }
 
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var plans = await _planRepository.GetAllAsync();
-        return View(plans.OrderBy(p => p.DurationInMonths));
+        var response = await _httpClient.GetAsync("api/gymplans");
+        if (response.IsSuccessStatusCode)
+        {
+            var jsonString = await response.Content.ReadAsStringAsync();
+            var plans = JsonSerializer.Deserialize<List<GymPlan>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return View(plans.OrderBy(p => p.DurationInMonths));
+        }
+        return View(new List<GymPlan>());
     }
 
     [HttpGet]
@@ -33,21 +41,29 @@ public class GymPlanController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(GymPlan plan)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid) return View(plan);
+
+        var jsonContent = new StringContent(JsonSerializer.Serialize(plan), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync("api/gymplans", jsonContent);
+
+        if (response.IsSuccessStatusCode)
         {
-            await _planRepository.AddAsync(plan);
-            await _planRepository.SaveAsync();
             TempData["SuccessMessage"] = "Üyelik paketi başarıyla oluşturuldu!";
             return RedirectToAction(nameof(Index));
         }
+
+        ModelState.AddModelError(string.Empty, "API'ye gönderilirken hata oluştu.");
         return View(plan);
     }
 
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
-        var plan = await _planRepository.GetByIdAsync(id);
-        if (plan == null) return NotFound();
+        var response = await _httpClient.GetAsync($"api/gymplans/{id}");
+        if (!response.IsSuccessStatusCode) return NotFound();
+
+        var jsonString = await response.Content.ReadAsStringAsync();
+        var plan = JsonSerializer.Deserialize<GymPlan>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         return View(plan);
     }
 
@@ -55,13 +71,18 @@ public class GymPlanController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(GymPlan plan)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid) return View(plan);
+
+        var jsonContent = new StringContent(JsonSerializer.Serialize(plan), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PutAsync($"api/gymplans/{plan.Id}", jsonContent);
+
+        if (response.IsSuccessStatusCode)
         {
-            _planRepository.Update(plan);
-            await _planRepository.SaveAsync();
             TempData["SuccessMessage"] = "Üyelik paketi başarıyla güncellendi!";
             return RedirectToAction(nameof(Index));
         }
+
+        ModelState.AddModelError(string.Empty, "Güncelleme sırasında API hatası oluştu.");
         return View(plan);
     }
 
@@ -69,12 +90,15 @@ public class GymPlanController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var plan = await _planRepository.GetByIdAsync(id);
-        if (plan != null)
+        var response = await _httpClient.DeleteAsync($"api/gymplans/{id}");
+
+        if (response.IsSuccessStatusCode)
         {
-            _planRepository.Delete(plan);
-            await _planRepository.SaveAsync();
-            TempData["SuccessMessage"] = "Üyelik paketi silindi!";
+            TempData["SuccessMessage"] = "Üyelik paketi başarıyla silindi!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Silme işlemi sırasında API hatası oluştu.";
         }
         return RedirectToAction(nameof(Index));
     }
