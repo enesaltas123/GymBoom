@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text;
+using GymBoom.Models;
 using GymBoom.Models.ViewModels.Account;
 
 namespace GymBoom.Controllers;
@@ -129,12 +130,42 @@ public class AccountController : Controller
         return RedirectToAction("Login");
     }
 
+    private void AddJwtTokenToHttpClient()
+    {
+        var token = User.FindFirstValue("JwtToken");
+        if (!string.IsNullOrEmpty(token))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+    }
+
     [HttpGet]
     [Authorize]
-    public IActionResult Profile() 
+    public async Task<IActionResult> Profile()
     {
-        TempData["ErrorMessage"] = "Profil sayfası API entegrasyonu tamamlanana kadar devre dışıdır.";
-        return RedirectToAction("Index", "Home");
+        AddJwtTokenToHttpClient();
+
+        var userResponse = await _httpClient.GetAsync("api/users/my-profile");
+        if (!userResponse.IsSuccessStatusCode) return RedirectToAction("Login");
+        
+        var userJson = await userResponse.Content.ReadAsStringAsync();
+        var user = JsonSerializer.Deserialize<User>(userJson, _jsonOptions);
+
+        var ordersResponse = await _httpClient.GetAsync($"api/orders/user/{user!.Id}");
+        var orders = new List<Order>();
+        if (ordersResponse.IsSuccessStatusCode)
+        {
+            var ordersJson = await ordersResponse.Content.ReadAsStringAsync();
+            orders = JsonSerializer.Deserialize<List<Order>>(ordersJson, _jsonOptions);
+        }
+
+        var model = new ProfileViewModel
+        {
+            AppUser = user,
+            PastOrders = orders
+        };
+
+        return View(model);
     }
 
     [HttpGet]
@@ -144,9 +175,23 @@ public class AccountController : Controller
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public IActionResult ChangePassword(ChangePasswordViewModel model)
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
     {
-        TempData["ErrorMessage"] = "Şifre değiştirme işlemi yakında API üzerinden aktif edilecektir.";
-        return RedirectToAction("Index", "Home");
+        if (!ModelState.IsValid) return View(model);
+
+        AddJwtTokenToHttpClient();
+
+        var jsonContent = new StringContent(JsonSerializer.Serialize(new { CurrentPassword = model.CurrentPassword, NewPassword = model.NewPassword }), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync("api/users/change-password", jsonContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMsg = await response.Content.ReadAsStringAsync();
+            ModelState.AddModelError("CurrentPassword", string.IsNullOrEmpty(errorMsg) ? "Mevcut şifreniz hatalı veya işlem başarısız oldu." : errorMsg);
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = "Şifreniz başarıyla güncellendi.";
+        return RedirectToAction("Profile");
     }
 }
