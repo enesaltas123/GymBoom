@@ -120,13 +120,29 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult ForgotPassword() => View();
+    public IActionResult ForgotPassword()
+    {
+        if (User.Identity != null && User.Identity.IsAuthenticated) return RedirectToAction("Index", "Home");
+        return View();
+    }
     
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult ForgotPassword(ForgotPasswordViewModel model)
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
-        TempData["ErrorMessage"] = "Şifre sıfırlama işlemi yakında API üzerinden aktif edilecektir.";
+        if (!ModelState.IsValid) return View(model);
+
+        var jsonContent = new StringContent(JsonSerializer.Serialize(new { Email = model.Email }), Encoding.UTF8, "application/json");
+        
+        var response = await _httpClient.PostAsync("api/users/forgot-password", jsonContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            ModelState.AddModelError(string.Empty, "İşlem sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = "Yeni şifreniz e-posta adresinize başarıyla gönderildi. Lütfen gelen kutunuzu (ve Spam klasörünü) kontrol edin.";
         return RedirectToAction("Login");
     }
 
