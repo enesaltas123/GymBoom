@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Net;
+using System.Net.Mail;
 using GymBoom.Models;
 using GymBoom.Data.Repositories;
 
@@ -92,10 +94,62 @@ public class UsersController : ControllerBase
 
         return Ok(new { Message = "Şifreniz başarıyla güncellendi." });
     }
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var user = await _userRepository.Query()
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
+
+        if (user == null)
+        {
+            return Ok(new { Message = "İşlem başarılı" });
+        }
+
+        string tempPassword = Guid.NewGuid().ToString().Substring(0, 8);
+        
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+        _userRepository.Update(user);
+        await _userRepository.SaveAsync();
+
+        try
+        {
+            using var smtpClient = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential("enesson3113@gmail.com", "mzew fulr jewa rurq"),
+                EnableSsl = true,
+            };
+
+            using var mailMessage = new MailMessage
+            {
+                From = new MailAddress("enesson3113@gmail.com", "GymBoom Destek"),
+                Subject = "GymBoom - Yeni Geçici Şifreniz",
+                Body = $"Merhaba {user.FullName},\n\nHesabınız için şifre sıfırlama talebi aldık.\n\nYeni geçici şifreniz: {tempPassword}\n\nLütfen bu şifre ile sisteme giriş yapın.\n\nGymBoom Ekibi",
+                IsBodyHtml = false,
+            };
+
+            mailMessage.To.Add(user.Email);
+            await smtpClient.SendMailAsync(mailMessage);
+            
+            return Ok(new { Message = "Şifreniz başarıyla sıfırlandı ve e-posta gönderildi." });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("MAIL GONDERIM HATASI: " + ex.Message);
+            return StatusCode(500, "E-posta gönderilirken sunucu tarafında bir hata oluştu.");
+        }
+    }
 }
 
 public class ChangePasswordRequest
 {
     public string CurrentPassword { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
+}
+
+public class ForgotPasswordRequest
+{
+    public string Email { get; set; } = string.Empty;
 }
